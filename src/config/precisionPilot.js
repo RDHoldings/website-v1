@@ -112,7 +112,7 @@ export const precisionPilot = {
       fileUrl: '/precision-pilot',
       storeUrl: null,
       storeLabel: null,
-      enabled: false,
+      enabled: true,
     },
     {
       id: 'windows',

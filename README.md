@@ -173,10 +173,12 @@ Set `enabled: true` when a build or URL is live. Paths under `/downloads/...` ma
 
 | Path | Purpose |
 |------|---------|
-| **`/precision-pilot`** | Production shell: full-viewport **iframe** loading **`productionEmbedUrl`** (default **`/precision-pilot/app/`** — placeholder HTML until you ship your SPA). |
-| **`/precision-pilot-test`** | Pre-release shell: **`testEmbedUrl`** (default **`/precision-pilot-test/app/`**) + **`testUrlExtraParams`**. Test banner, **noindex** meta, debug line for resolved iframe `src`. |
+| **`/precision-pilot`** | Production shell: full-viewport **iframe** loading **`productionEmbedUrl`** (default **`/precision-pilot/app/`** — Flutter web build with **`base href /precision-pilot/app/`**). |
+| **`/precision-pilot-test`** | Pre-release shell: **`testEmbedUrl`** (default **`/precision-pilot-test/app/`**) + **`testUrlExtraParams`**. Test banner, **noindex** on the marketing shell + test embed `index.html`, debug line for resolved iframe `src`. |
 
 If embed URLs are cleared (`''`), both routes show setup copy and the **download** cards instead of an iframe. Point your web app (Vercel, Cloudflare, etc.) at these paths for deep links, or set embed URLs to load that app inside the iframe.
+
+**Google Maps (Flutter web):** `public/precision-pilot*/app/index.html` loads the Maps JS API with placeholder **`YOUR_GOOGLE_MAPS_WEB_API_KEY`**. At **`npm run build`**, `scripts/inject-google-maps-key.mjs` replaces it when **`GOOGLE_MAPS_WEB_API_KEY`** is set (local env or GitHub Actions secret **`GOOGLE_MAPS_WEB_API_KEY`** — already wired in **`.github/workflows/deploy-github-pages.yml`**). Restrict the key by HTTP referrer to your domain in Google Cloud Console.
 
 **Static Precision Pilot builds in this repo (tracked + deployed):**
 

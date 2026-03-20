@@ -10,7 +10,14 @@ import reactRefresh from 'eslint-plugin-react-refresh'
  * (there is no `configs.flat.recommended`).
  */
 export default [
-  { ignores: ['dist/**'] },
+  {
+    ignores: [
+      'dist/**',
+      // Flutter web + CanvasKit bundles (third-party / generated; do not lint)
+      'public/precision-pilot/**',
+      'public/precision-pilot-test/**',
+    ],
+  },
   js.configs.recommended,
   {
     files: ['vite.config.js', 'scripts/**/*.mjs'],
