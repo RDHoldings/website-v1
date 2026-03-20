@@ -5,7 +5,7 @@ import { resolveSitePath } from '../utils/sitePaths'
  * Override at build time with `VITE_SITE_URL` if needed.
  */
 export const SITE_URL_DEFAULT =
-  import.meta.env.VITE_SITE_URL?.replace(/\/$/, '') || 'https://www.reddominoholdings.com'
+  import.meta.env.VITE_SITE_URL?.replace(/\/$/, '') || 'https://reddominoholdings.com'
 
 export const SITE_NAME = 'Red Domino Holdings'
 
@@ -41,7 +41,7 @@ export const SEO_COPY = {
 }
 
 /**
- * @param {string} origin - e.g. https://www.reddominoholdings.com (no trailing slash)
+ * @param {string} origin - e.g. https://reddominoholdings.com (no trailing slash)
  */
 export function buildOrganizationJsonLd(origin) {
   const base = origin.replace(/\/$/, '')

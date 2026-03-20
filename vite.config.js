@@ -10,7 +10,7 @@ function viteBase() {
 }
 
 // https://vite.dev/config/
-// base: '/' — custom domain at site root (e.g. www.reddominoholdings.com)
+// base: '/' — custom domain at site root (e.g. reddominoholdings.com)
 // base: '/repo-name/' — GitHub Pages project URL (set VITE_BASE_URL in CI or .env.production)
 // public/ is copied to dist/ under that base (e.g. precision-pilot/**)
 export default defineConfig({

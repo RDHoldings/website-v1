@@ -260,7 +260,7 @@ Optional **`VITE_SITE_URL`** (see **`.env.example`**) sets the canonical origin 
 ## SEO & accessibility
 
 - **Per-route meta:** **`src/components/Seo.jsx`** (via **`react-helmet-async`**) sets `title`, `description`, `canonical`, Open Graph, Twitter Card tags, and **`robots`** (`noindex` on **`/precision-pilot-test`**). Home page injects **Organization** JSON-LD; **`/precision-pilot`** adds **SoftwareApplication** JSON-LD.
-- **Defaults for non-JS crawlers:** **`index.html`** includes base description, theme color, and OG/Twitter tags pointing at **`https://www.reddominoholdings.com/`** — update if your canonical domain differs.
+- **Defaults for non-JS crawlers:** **`index.html`** includes base description, theme color, and OG/Twitter tags pointing at **`https://reddominoholdings.com/`** (apex — GitHub redirects `www` here) — override with `VITE_SITE_URL` if needed.
 - **Sitemap & robots:** **`public/sitemap.xml`** and **`public/robots.txt`** (sitemap URL, **`Disallow: /precision-pilot-test`**). Regenerate or edit URLs when the live domain changes.
 - **Skip link:** **`src/components/SkipLink.jsx`** → **`#site-main`**; **`globals.css`** defines **`.skip-link`** and **`:focus-visible`** outlines for keyboard users.
 - **Landmarks & labels:** `role="banner"` / `contentinfo`, labeled `<nav>` elements, **`aria-label`** on logo home links, section **`aria-labelledby`**, decorative video **`aria-hidden`**, **`scroll-mt-*`** for fixed header anchor targets.
@@ -359,7 +359,10 @@ If ESLint fails due to **flat config** / plugin compatibility, align `eslint.con
 | Issue | Suggestion |
 |-------|------------|
 | Blank or broken styles after deploy | Check Vite **`base`** matches your hosted path; hard-refresh CDN. |
+| Route blank with URL ending in `/` (e.g. `/precision-pilot-test/`) | **`TrailingSlashRedirect`** strips the slash so React Router matches; hard-refresh after deploy. |
+| Browser shows “invalid response” on apex | Usually **DNS / HTTPS** for the bare domain (see **`docs/DNS_GITHUB_PAGES.md`**). `curl -sI https://yourdomain.com/...` should return headers from **GitHub.com**. |
 | `/privacy` 404 on refresh | On GitHub Pages, the workflow copies `index.html` → `404.html`. For other hosts, configure SPA fallback. |
+| DevTools shows **404** for a deep link (but the SPA loads) | **Normal on GitHub Pages**: unknown paths return **404** status with the SPA HTML. Crawlers may still see 404 — consider a host that rewrites to **200** if that matters. |
 | Pages workflow fails | Repo **Settings → Pages** must use **GitHub Actions** as source; org must allow Actions / Pages. |
 | Custom domain not verifying | Match **`public/CNAME`** to Settings → Pages; wait for DNS; check CNAME target is `rdholdings.github.io` for `www`. |
 | Screenshots missing in mockup | Add matching PNGs or adjust globs in `PrecisionPilotDevice.jsx`. |

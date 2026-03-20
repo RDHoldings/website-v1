@@ -142,7 +142,7 @@ export function PrecisionPilotWebPage({ variant }) {
             src={iframeSrcAbsolute}
             className="block h-full min-h-0 w-full flex-1 border-0 bg-black"
             loading="eager"
-            allow="fullscreen; clipboard-read; clipboard-write"
+            allow="fullscreen"
             referrerPolicy="strict-origin-when-cross-origin"
           />
         ) : (

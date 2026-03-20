@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { ScrollToTop } from './components/ScrollToTop'
 import { SkipLink } from './components/SkipLink'
+import { TrailingSlashRedirect } from './components/TrailingSlashRedirect'
 import { Home } from './pages/Home'
 import { PrecisionPilotWebPage } from './pages/PrecisionPilotWebPage'
 import { PrivacyPolicy } from './pages/PrivacyPolicy'
@@ -11,6 +12,7 @@ function App() {
     <>
       <SkipLink />
       <ScrollToTop />
+      <TrailingSlashRedirect />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route
