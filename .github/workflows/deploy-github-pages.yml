@@ -35,10 +35,27 @@ jobs:
 
       - name: Build
         run: npm run build
+        # Vite copies public/ → dist/ (includes public/precision-pilot/** and public/precision-pilot-test/**)
 
       # GitHub Pages serves 404.html for unknown paths — same as index.html so React Router works on refresh
       - name: SPA fallback for client-side routes
         run: cp dist/index.html dist/404.html
+
+      # Single artifact: main SPA + any static assets under dist/precision-pilot/ and dist/precision-pilot-test/
+      - name: Verify published layout (SPA + optional PP static bundles)
+        run: |
+          set -e
+          ls -la dist
+          echo ""
+          for name in precision-pilot precision-pilot-test; do
+            if [ -d "dist/$name" ]; then
+              count=$(find "dist/$name" -type f | wc -l)
+              echo "dist/$name: $count file(s) (from public/$name — shipped with this deploy)"
+            else
+              echo "dist/$name: missing (unexpected — public/ should always copy); failing"
+              exit 1
+            fi
+          done
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

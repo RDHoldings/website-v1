@@ -178,6 +178,15 @@ Set `enabled: true` when a build or URL is live. Paths under `/downloads/...` ma
 
 Until embed URLs are set, both routes show setup instructions and the **download** cards. Point your web app (Vercel, Cloudflare, etc.) at these paths for deep links, or set embed URLs to load that app inside the iframe.
 
+**Static Precision Pilot builds in this repo (tracked + deployed):**
+
+| Path in repo | Served at | Notes |
+|--------------|-----------|--------|
+| **`public/precision-pilot/**`** | **`/precision-pilot/...`** | Copied to `dist/` on every `npm run build`. Commit files here to ship them on every push. Put the **embedded SPA** under **`public/precision-pilot/app/`** (not `index.html` at the folder root — that can shadow the React shell). |
+| **`public/precision-pilot-test/**`** | **`/precision-pilot-test/...`** | Same for staging/test; prefer **`public/precision-pilot-test/app/`** for the iframe target. |
+
+GitHub Actions runs **one** `npm run build`; the artifact is all of **`dist/`** (marketing SPA + `public/` trees above). No separate workflow is required for those directories.
+
 **CORS / cookies:** If the iframe `src` is **another origin**, your app must allow being embedded (`X-Frame-Options` / CSP `frame-ancestors`) where appropriate.
 
 ### Vite (`vite.config.js`)
