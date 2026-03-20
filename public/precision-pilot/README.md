@@ -21,3 +21,5 @@ Instead, output your separate web app with **`base: '/precision-pilot/app/'`** (
 → set `productionEmbedUrl: '/precision-pilot/app/'` (trailing slash recommended).
 
 Then commit and push; the next deploy ships those assets automatically.
+
+**Bundled placeholder:** `app/index.html` is a temporary in-iframe page so the shell works before your real build exists. Replace it when you publish the production SPA.

@@ -38,7 +38,7 @@ export function PrecisionPilotWebPage({ variant }) {
     : null
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0a0a0a] text-[#e5e7eb]">
+    <div className="flex min-h-dvh min-h-screen flex-col bg-[#0a0a0a] text-[#e5e7eb]">
       <Seo
         title={seo.title}
         description={seo.description}
@@ -135,7 +135,7 @@ export function PrecisionPilotWebPage({ variant }) {
             key={iframeSrc}
             title={isTest ? 'Precision Pilot (test)' : 'Precision Pilot'}
             src={iframeSrc}
-            className="w-full min-h-0 min-h-[50vh] flex-1 border-0 bg-black"
+            className="h-full w-full min-h-0 flex-1 border-0 bg-black"
             allow="fullscreen; clipboard-read; clipboard-write"
             referrerPolicy="strict-origin-when-cross-origin"
           />

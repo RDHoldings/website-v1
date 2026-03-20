@@ -16,13 +16,14 @@ export const PRECISION_PILOT_DOWNLOAD_BASE = '/downloads/precision-pilot'
 
 /**
  * Web client loaded inside `/precision-pilot` and `/precision-pilot-test`.
- * Set embed URLs when your SPA is hosted (Vercel, Cloudflare, same repo under /app/, etc.).
+ * Defaults point at same-origin static files in `public/.../app/` (built to `dist/.../app/`).
+ * Replace with a full SPA build or an external https:// URL when ready.
  */
 export const precisionPilotWebApp = {
-  /** Production web client — iframe `src` (https://… or same-origin path e.g. /precision-pilot/app/) */
-  productionEmbedUrl: '',
+  /** Production web client — iframe `src` (https://… or path under /precision-pilot/app/) */
+  productionEmbedUrl: '/precision-pilot/app/',
   /** Pre-release / staging web client for `/precision-pilot-test` */
-  testEmbedUrl: '',
+  testEmbedUrl: '/precision-pilot-test/app/',
   /**
    * Query string appended to **test** embed only (no leading `?` required).
    * Example: `debug=1&env=staging` — use for feature flags your app reads from the URL.

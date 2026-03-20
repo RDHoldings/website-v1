@@ -173,10 +173,10 @@ Set `enabled: true` when a build or URL is live. Paths under `/downloads/...` ma
 
 | Path | Purpose |
 |------|---------|
-| **`/precision-pilot`** | Production shell: full-viewport **iframe** when `precisionPilotWebApp.productionEmbedUrl` is set (HTTPS URL or same-site path). |
-| **`/precision-pilot-test`** | Pre-release shell: uses **`testEmbedUrl`** + optional **`testUrlExtraParams`** (e.g. `debug=1`) for staging. Includes a visible test banner, **noindex** meta, and debug line showing the resolved iframe `src`. |
+| **`/precision-pilot`** | Production shell: full-viewport **iframe** loading **`productionEmbedUrl`** (default **`/precision-pilot/app/`** — placeholder HTML until you ship your SPA). |
+| **`/precision-pilot-test`** | Pre-release shell: **`testEmbedUrl`** (default **`/precision-pilot-test/app/`**) + **`testUrlExtraParams`**. Test banner, **noindex** meta, debug line for resolved iframe `src`. |
 
-Until embed URLs are set, both routes show setup instructions and the **download** cards. Point your web app (Vercel, Cloudflare, etc.) at these paths for deep links, or set embed URLs to load that app inside the iframe.
+If embed URLs are cleared (`''`), both routes show setup copy and the **download** cards instead of an iframe. Point your web app (Vercel, Cloudflare, etc.) at these paths for deep links, or set embed URLs to load that app inside the iframe.
 
 **Static Precision Pilot builds in this repo (tracked + deployed):**
 
