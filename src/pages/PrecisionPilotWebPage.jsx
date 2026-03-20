@@ -4,10 +4,7 @@ import logoShort from '../assets/RD Holdings Logo (Short Logo) 2.png'
 import { PrecisionPilotDownloads } from '../components/PrecisionPilotDownloads'
 import { Seo } from '../components/Seo'
 import { SEO_COPY, SITE_NAME } from '../config/site'
-import {
-  getPrecisionPilotWebEmbedSrc,
-  precisionPilotWebApp,
-} from '../config/precisionPilot'
+import { getPrecisionPilotWebEmbedSrc } from '../config/precisionPilot'
 
 /**
  * @param {{ variant: 'production' | 'test' }} props
@@ -114,18 +111,10 @@ export function PrecisionPilotWebPage({ variant }) {
       {isTest && iframeSrc ? (
         <div
           className="border-b border-white/10 bg-black/40 px-4 py-2 font-mono text-xs text-[#9ca3af] md:px-6"
-          aria-label="Debug: embedded app URL"
+          aria-label="Test build: full iframe URL (path plus testUrlExtraParams from config)"
         >
-          <span className="text-[#6b7280]">iframe src · </span>
+          <span className="text-[#6b7280]">Test iframe · </span>
           <span className="break-all text-[#d1d5db]">{iframeSrc}</span>
-          {precisionPilotWebApp.testUrlExtraParams?.trim() ? (
-            <span className="mt-1 block text-[#6b7280]">
-              Extra params from config:{' '}
-              <code className="text-[#9ca3af]">
-                {precisionPilotWebApp.testUrlExtraParams.trim()}
-              </code>
-            </span>
-          ) : null}
         </div>
       ) : null}
 
