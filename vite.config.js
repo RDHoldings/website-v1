@@ -1,10 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+function viteBase() {
+  const raw = process.env.VITE_BASE_URL?.trim()
+  if (!raw || raw === '/') return '/'
+  return raw.endsWith('/') ? raw : `${raw}/`
+}
+
 // https://vite.dev/config/
-// base: '/' — correct for custom domain at site root (www / apex on GitHub Pages)
-// public/ is copied to dist/ on build (e.g. public/precision-pilot/** → /precision-pilot/** on the live site)
+// base: '/' — custom domain at site root (e.g. www.reddominoholdings.com)
+// base: '/repo-name/' — GitHub Pages project URL (set VITE_BASE_URL in CI or .env.production)
+// public/ is copied to dist/ under that base (e.g. precision-pilot/**)
 export default defineConfig({
-  base: '/',
+  base: viteBase(),
   plugins: [react()],
 })

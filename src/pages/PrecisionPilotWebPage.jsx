@@ -35,7 +35,7 @@ export function PrecisionPilotWebPage({ variant }) {
     : null
 
   return (
-    <div className="flex min-h-dvh min-h-screen flex-col bg-[#0a0a0a] text-[#e5e7eb]">
+    <div className="fixed inset-0 z-0 flex flex-col overflow-hidden bg-[#0a0a0a] text-[#e5e7eb]">
       <Seo
         title={seo.title}
         description={seo.description}
@@ -67,7 +67,7 @@ export function PrecisionPilotWebPage({ variant }) {
 
       <header
         role="banner"
-        className="border-b border-white/10 bg-[#0a0a0a]/95 backdrop-blur-sm"
+        className="shrink-0 border-b border-white/10 bg-[#0a0a0a]/95 backdrop-blur-sm"
       >
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
           <Link
@@ -110,7 +110,7 @@ export function PrecisionPilotWebPage({ variant }) {
 
       {isTest && iframeSrc ? (
         <div
-          className="border-b border-white/10 bg-black/40 px-4 py-2 font-mono text-xs text-[#9ca3af] md:px-6"
+          className="shrink-0 border-b border-white/10 bg-black/40 px-4 py-2 font-mono text-xs text-[#9ca3af] md:px-6"
           aria-label="Test build: full iframe URL (path plus testUrlExtraParams from config)"
         >
           <span className="text-[#6b7280]">Test iframe · </span>
@@ -118,13 +118,14 @@ export function PrecisionPilotWebPage({ variant }) {
         </div>
       ) : null}
 
-      <main id="site-main" className="flex min-h-0 flex-1 flex-col">
+      <main id="site-main" className="flex min-h-0 min-w-0 flex-1 flex-col">
         {iframeSrc ? (
           <iframe
             key={iframeSrc}
             title={isTest ? 'Precision Pilot (test)' : 'Precision Pilot'}
             src={iframeSrc}
-            className="h-full w-full min-h-0 flex-1 border-0 bg-black"
+            className="block h-full min-h-0 w-full flex-1 border-0 bg-black"
+            loading="eager"
             allow="fullscreen; clipboard-read; clipboard-write"
             referrerPolicy="strict-origin-when-cross-origin"
           />
@@ -164,7 +165,7 @@ export function PrecisionPilotWebPage({ variant }) {
       </main>
 
       <footer
-        className="border-t border-white/10 px-6 py-6 text-center text-xs text-[#6b7280]"
+        className="shrink-0 border-t border-white/10 px-6 py-6 text-center text-xs text-[#6b7280]"
         role="contentinfo"
       >
         <nav className="flex flex-wrap items-center justify-center gap-2" aria-label="Footer">

@@ -294,7 +294,7 @@ This repo includes **`.github/workflows/deploy-github-pages.yml`**, which on eve
    - **Project URL:** `https://rdholdings.github.io/website-v1/`  
    (GitHub shows the exact URL under **Settings → Pages**.)
 
-`vite.config.js` uses **`base: '/'`**, which is correct when the site is served at the **root of your custom domain**. You do **not** need `basename` on `BrowserRouter` for a root custom domain.
+**Base URL (`VITE_BASE_URL`):** `vite.config.js` defaults to **`base: '/'`**, which matches a **custom domain at the site root**. If you browse the **GitHub project URL** (`https://rdholdings.github.io/website-v1/`) without a custom domain, set a **repository variable** **`VITE_BASE_URL`** to **`/website-v1/`** (Settings → Secrets and variables → Actions → Variables) so assets, React Router, and **Precision Pilot iframe** paths resolve correctly. The workflow passes **`vars.VITE_BASE_URL`** into the build step. Leave the variable **unset** for custom-domain-only deployments.
 
 ### 2. Custom domain + `CNAME` in the repo
 

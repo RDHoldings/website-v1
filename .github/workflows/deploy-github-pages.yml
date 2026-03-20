@@ -36,6 +36,9 @@ jobs:
       - name: Build
         run: npm run build
         # Vite copies public/ → dist/ (includes public/precision-pilot/** and public/precision-pilot-test/**)
+        # For github.io project URLs only, set repo variable VITE_BASE_URL (e.g. /website-v1/) so iframe paths match.
+        env:
+          VITE_BASE_URL: ${{ vars.VITE_BASE_URL }}
 
       # GitHub Pages serves 404.html for unknown paths — same as index.html so React Router works on refresh
       - name: SPA fallback for client-side routes

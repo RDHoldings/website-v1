@@ -1,3 +1,5 @@
+import { resolveSitePath } from '../utils/sitePaths'
+
 /**
  * Precision Pilot — marketing copy & download endpoints
  *
@@ -42,12 +44,19 @@ export function getPrecisionPilotWebEmbedSrc(variant) {
       ? precisionPilotWebApp.testEmbedUrl?.trim()
       : precisionPilotWebApp.productionEmbedUrl?.trim()
   if (!raw) return null
+
+  let resolved = raw
+  if (!/^https?:\/\//i.test(raw)) {
+    const ref = new URL(raw, 'https://placeholder.invalid')
+    resolved = resolveSitePath(ref.pathname) + ref.search + ref.hash
+  }
+
   if (variant !== 'test' || !precisionPilotWebApp.testUrlExtraParams?.trim()) {
-    return raw
+    return resolved
   }
   const extra = precisionPilotWebApp.testUrlExtraParams.replace(/^\?/, '').trim()
-  if (!extra) return raw
-  return raw.includes('?') ? `${raw}&${extra}` : `${raw}?${extra}`
+  if (!extra) return resolved
+  return resolved.includes('?') ? `${resolved}&${extra}` : `${resolved}?${extra}`
 }
 
 export const precisionPilot = {
