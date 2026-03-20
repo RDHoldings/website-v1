@@ -1,0 +1,45 @@
+@import "./fonts.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply m-0 antialiased;
+    font-family: 'Inter', 'Geist', system-ui, sans-serif;
+    color: #f3f4f6;
+    background-color: #0a0a0a;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  /**
+   * Phone mockup screenshots: larger downscales + GPU layers can soften UI text.
+   * Promote own layer + prefer crisp downscaling where browsers support it.
+   */
+  .precision-pilot-screen-img {
+    object-position: top center;
+    -ms-interpolation-mode: bicubic;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+
+  @supports (image-rendering: high-quality) {
+    .precision-pilot-screen-img {
+      image-rendering: high-quality;
+    }
+  }
+}
