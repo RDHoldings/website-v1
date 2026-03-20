@@ -3,14 +3,19 @@ import { fadeUp } from '../../utils/animations'
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0a0a0a]">
-      {/* Looping video background - add hero-video.mp4 to public/ folder */}
+    <section
+      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0a0a0a]"
+      aria-label="Hero"
+    >
+      {/* Decorative background video — no audio; add hero-video.mp4 to public/ */}
       <video
         className="absolute inset-0 w-full h-full object-cover"
         autoPlay
         loop
         muted
         playsInline
+        tabIndex={-1}
+        aria-hidden
       >
         <source src="/hero-video.mp4" type="video/mp4" />
       </video>

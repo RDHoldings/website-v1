@@ -1,23 +1,26 @@
-import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import logoShort from '../assets/RD Holdings Logo (Short Logo) 2.png'
 
 export function LegalPageLayout({ title, children, updated }) {
   const year = new Date().getFullYear()
 
-  useEffect(() => {
-    document.title = `${title} | Red Domino Holdings`
-  }, [title])
-
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-[#e5e7eb]">
-      <header className="border-b border-white/10 bg-[#0a0a0a]/95 backdrop-blur-sm">
+      <header
+        role="banner"
+        className="border-b border-white/10 bg-[#0a0a0a]/95 backdrop-blur-sm"
+      >
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-6 py-6">
-          <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
+          <Link
+            to="/"
+            className="flex items-center gap-3 outline-none transition-opacity hover:opacity-90"
+            aria-label="Red Domino Holdings — home"
+          >
             <img
               src={logoShort}
-              alt="Red Domino Holdings"
+              alt=""
               className="h-10 w-auto object-contain"
+              decoding="async"
             />
           </Link>
           <Link
@@ -29,26 +32,28 @@ export function LegalPageLayout({ title, children, updated }) {
         </div>
       </header>
 
-      <article className="mx-auto max-w-4xl px-6 py-12 md:py-16">
-        <h1
-          className="mb-2 text-2xl font-bold tracking-tight text-[#f3f4f6] md:text-3xl"
-          style={{ fontFamily: "'Pirulen', 'Inter', sans-serif" }}
-        >
-          {title}
-        </h1>
-        {updated ? (
-          <p className="mb-10 text-sm text-[#9ca3af]">Last updated: {updated}</p>
-        ) : null}
+      <main id="site-main">
+        <article className="mx-auto max-w-4xl px-6 py-12 md:py-16">
+          <h1
+            className="mb-2 text-2xl font-bold tracking-tight text-[#f3f4f6] md:text-3xl"
+            style={{ fontFamily: "'Pirulen', 'Inter', sans-serif" }}
+          >
+            {title}
+          </h1>
+          {updated ? (
+            <p className="mb-10 text-sm text-[#9ca3af]">Last updated: {updated}</p>
+          ) : null}
 
-        <div className="legal-prose space-y-8 text-sm leading-relaxed text-[#d1d5db] md:text-base">
-          {children}
-        </div>
-      </article>
+          <div className="legal-prose space-y-8 text-sm leading-relaxed text-[#d1d5db] md:text-base">
+            {children}
+          </div>
+        </article>
+      </main>
 
-      <footer className="border-t border-white/10 px-6 py-10">
+      <footer className="border-t border-white/10 px-6 py-10" role="contentinfo">
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 text-center text-sm text-[#9ca3af] sm:flex-row sm:justify-between sm:text-left">
           <p>© {year} Red Domino Holdings. All rights reserved.</p>
-          <nav className="flex flex-wrap justify-center gap-4">
+          <nav className="flex flex-wrap justify-center gap-4" aria-label="Legal">
             <Link to="/privacy" className="hover:text-[#f3f4f6]">
               Privacy Policy
             </Link>

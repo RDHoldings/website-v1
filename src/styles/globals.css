@@ -13,6 +13,12 @@
     scroll-behavior: smooth;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
   body {
     @apply m-0 antialiased;
     font-family: 'Inter', 'Geist', system-ui, sans-serif;
@@ -23,9 +29,65 @@
   #root {
     min-height: 100vh;
   }
+
+  /* Visible focus for keyboard users (do not rely on browser default alone on dark UI) */
+  a:focus-visible,
+  button:focus-visible,
+  summary:focus-visible,
+  [role='button']:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid #c49a3a;
+    outline-offset: 2px;
+  }
+
+  iframe:focus-visible {
+    outline: 2px solid #c49a3a;
+    outline-offset: 2px;
+  }
 }
 
 @layer components {
+  /**
+   * Skip link: visually hidden until focused.
+   */
+  .skip-link {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .skip-link:focus {
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 200;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    border-radius: 0.375rem;
+    background-color: #ffffff;
+    color: #0a0a0a;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow:
+      0 10px 15px -3px rgb(0 0 0 / 0.25),
+      0 4px 6px -4px rgb(0 0 0 / 0.2);
+    outline: 2px solid #c49a3a;
+    outline-offset: 2px;
+  }
+
   /**
    * Phone mockup screenshots: larger downscales + GPU layers can soften UI text.
    * Promote own layer + prefer crisp downscaling where browsers support it.

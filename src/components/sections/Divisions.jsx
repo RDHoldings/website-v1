@@ -32,7 +32,11 @@ const cards = [
 
 export function Divisions() {
   return (
-    <section id="divisions" className="py-24 md:py-32 px-6 bg-[#111111]">
+    <section
+      id="divisions"
+      className="scroll-mt-28 py-24 md:py-32 px-6 bg-[#111111]"
+      aria-labelledby="divisions-heading"
+    >
       <div className="max-w-6xl mx-auto">
         <motion.h2
           className="text-3xl md:text-4xl font-bold text-center mb-4"
@@ -70,7 +74,7 @@ export function Divisions() {
               transition={{ duration: 0.3 }}
             >
               <div className="flex flex-col h-full">
-                <card.icon className="w-10 h-10 text-[#c49a3a] mb-4" />
+                <card.icon className="w-10 h-10 text-[#c49a3a] mb-4" aria-hidden />
                 <h3
                   className="text-xl md:text-2xl font-bold mb-3"
                   style={{ fontFamily: "'Felix Titling', 'Playfair Display', serif" }}
@@ -84,7 +88,14 @@ export function Divisions() {
                     {card.entities.map((entity) => (
                       <li key={entity.name} className="flex items-center gap-2 text-sm text-[#f3f4f6]">
                         {entity.logo && (
-                          <img src={entity.logo} alt="" className="h-4 w-auto shrink-0 opacity-90" />
+                          <img
+                            src={entity.logo}
+                            alt=""
+                            className="h-4 w-auto shrink-0 opacity-90"
+                            width={80}
+                            height={16}
+                            decoding="async"
+                          />
                         )}
                         <span>{entity.name}</span>
                       </li>

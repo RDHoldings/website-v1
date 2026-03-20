@@ -9,7 +9,10 @@ const navLinks = [
 
 export function Nav({ className = '' }) {
   return (
-    <nav className={`flex items-center justify-center gap-8 md:gap-12 ${className}`}>
+    <nav
+      className={`flex items-center justify-center gap-8 md:gap-12 ${className}`}
+      aria-label="Primary"
+    >
       {navLinks.map((link) => (
         <motion.a
           key={link.href}

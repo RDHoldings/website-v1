@@ -16,7 +16,7 @@ export function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="py-16 md:py-24 px-6 bg-[#111111]">
+    <footer className="py-16 md:py-24 px-6 bg-[#111111]" role="contentinfo">
       <div className="max-w-6xl mx-auto">
         <motion.div
           className="flex flex-col md:flex-row md:items-center md:justify-between gap-8"
@@ -24,14 +24,19 @@ export function Footer() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <Link to="/" className="inline-block transition-opacity hover:opacity-90">
+          <Link
+            to="/"
+            className="inline-block outline-none transition-opacity hover:opacity-90"
+            aria-label="Red Domino Holdings — home"
+          >
             <img
               src={logoShort}
-              alt="Red Domino Holdings"
+              alt=""
               className="h-12 w-auto object-contain"
+              decoding="async"
             />
           </Link>
-          <nav className="flex flex-wrap justify-center md:justify-end gap-6">
+          <nav className="flex flex-wrap justify-center md:justify-end gap-6" aria-label="Footer">
             {footerLinks.map((link) => (
               <Link
                 key={link.label}

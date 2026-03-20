@@ -20,6 +20,7 @@ A production-oriented marketing site for **Red Domino Holdings**: responsive lan
 - [Precision Pilot web shell](#precision-pilot-web-shell-routes) · [downloads](#precision-pilot-downloads)
 - [Legal & compliance content](#legal--compliance-content)
 - [Environment variables](#environment-variables)
+- [SEO & accessibility](#seo--accessibility)
 - [Building for production](#building-for-production)
 - [GitHub Pages & custom domain (Squarespace)](#github-pages--custom-domain-squarespace)
 - [Linting](#linting)
@@ -242,6 +243,19 @@ Privacy and Terms are extensive **templates** in `src/pages/PrivacyPolicy.jsx` a
 There is **no required** `.env` for local development. The app does not read secrets at build time by default.
 
 If you add variables later, prefix client-visible values with **`VITE_`** and document them here. Keep `.env` files out of git (already listed in `.gitignore`).
+
+Optional **`VITE_SITE_URL`** (see **`.env.example`**) sets the canonical origin for SEO fallbacks in **`src/config/site.js`** when `window` is unavailable.
+
+---
+
+## SEO & accessibility
+
+- **Per-route meta:** **`src/components/Seo.jsx`** (via **`react-helmet-async`**) sets `title`, `description`, `canonical`, Open Graph, Twitter Card tags, and **`robots`** (`noindex` on **`/precision-pilot-test`**). Home page injects **Organization** JSON-LD; **`/precision-pilot`** adds **SoftwareApplication** JSON-LD.
+- **Defaults for non-JS crawlers:** **`index.html`** includes base description, theme color, and OG/Twitter tags pointing at **`https://www.reddominoholdings.com/`** — update if your canonical domain differs.
+- **Sitemap & robots:** **`public/sitemap.xml`** and **`public/robots.txt`** (sitemap URL, **`Disallow: /precision-pilot-test`**). Regenerate or edit URLs when the live domain changes.
+- **Skip link:** **`src/components/SkipLink.jsx`** → **`#site-main`**; **`globals.css`** defines **`.skip-link`** and **`:focus-visible`** outlines for keyboard users.
+- **Landmarks & labels:** `role="banner"` / `contentinfo`, labeled `<nav>` elements, **`aria-label`** on logo home links, section **`aria-labelledby`**, decorative video **`aria-hidden`**, **`scroll-mt-*`** for fixed header anchor targets.
+- **Leadership & contact:** **`src/components/sections/LeadershipContact.jsx`** backs **`#leadership`** and **`#contact`** (previously missing), matching primary nav / footer links.
 
 ---
 

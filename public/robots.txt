@@ -1,0 +1,8 @@
+# https://www.reddominoholdings.com — update Sitemap URL if your canonical domain differs
+User-agent: *
+Allow: /
+
+# Pre-release QA shell (also sends noindex via HTML)
+Disallow: /precision-pilot-test
+
+Sitemap: https://www.reddominoholdings.com/sitemap.xml

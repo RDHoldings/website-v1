@@ -1,24 +1,22 @@
-import { useEffect } from 'react'
+import { Seo } from '../components/Seo'
 import { Header } from '../components/sections/Header'
 import { Hero } from '../components/sections/Hero'
 import { Divisions } from '../components/sections/Divisions'
 import { Tech } from '../components/sections/Tech'
+import { LeadershipContact } from '../components/sections/LeadershipContact'
 import { Footer } from '../components/sections/Footer'
-
-const HOME_TITLE = 'Red Domino Holdings | Strategic Scaling. Infinite Potential.'
+import { SEO_COPY } from '../config/site'
 
 export function Home() {
-  useEffect(() => {
-    document.title = HOME_TITLE
-  }, [])
-
   return (
     <>
+      <Seo title={SEO_COPY.home.title} description={SEO_COPY.home.description} />
       <Header />
-      <main>
+      <main id="site-main">
         <Hero />
         <Divisions />
         <Tech />
+        <LeadershipContact />
         <Footer />
       </main>
     </>

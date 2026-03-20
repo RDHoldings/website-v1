@@ -1,10 +1,14 @@
+import { Seo } from '../components/Seo'
+import { SEO_COPY } from '../config/site'
 import { LegalPageLayout, LegalSection } from './LegalPageLayout'
 
 const UPDATED = 'March 20, 2026'
 
 export function TermsOfService() {
   return (
-    <LegalPageLayout title="Terms of Service" updated={UPDATED}>
+    <>
+      <Seo title={SEO_COPY.terms.title} description={SEO_COPY.terms.description} />
+      <LegalPageLayout title="Terms of Service" updated={UPDATED}>
       <p className="text-[#9ca3af]">
         These Terms of Service (“Terms”) form a legally binding agreement between you (“you,” “your,”
         or “user”) and Red Domino Holdings and its affiliates (collectively, “Red Domino,” “we,” “us,”
@@ -436,5 +440,6 @@ export function TermsOfService() {
         industry-specific obligations—before publication.
       </p>
     </LegalPageLayout>
+    </>
   )
 }

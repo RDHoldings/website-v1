@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { ScrollToTop } from './components/ScrollToTop'
+import { SkipLink } from './components/SkipLink'
 import { Home } from './pages/Home'
 import { PrecisionPilotWebPage } from './pages/PrecisionPilotWebPage'
 import { PrivacyPolicy } from './pages/PrivacyPolicy'
@@ -8,6 +9,7 @@ import { TermsOfService } from './pages/TermsOfService'
 function App() {
   return (
     <>
+      <SkipLink />
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />

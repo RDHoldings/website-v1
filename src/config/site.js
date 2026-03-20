@@ -1,0 +1,54 @@
+/**
+ * Canonical marketing domain for SEO defaults (sitemap, robots, fallbacks before hydration).
+ * Override at build time with `VITE_SITE_URL` if needed.
+ */
+export const SITE_URL_DEFAULT =
+  import.meta.env.VITE_SITE_URL?.replace(/\/$/, '') || 'https://www.reddominoholdings.com'
+
+export const SITE_NAME = 'Red Domino Holdings'
+
+/** Short brand line used in titles and meta */
+export const SITE_TAGLINE = 'Strategic Scaling. Infinite Potential.'
+
+export const SEO_COPY = {
+  home: {
+    title: `${SITE_NAME} | ${SITE_TAGLINE}`,
+    description:
+      'Red Domino Holdings is a management firm scaling logistics, transportation, and digital media through proprietary technology—including Precision Pilot—and strategic market expansion.',
+  },
+  precisionPilot: {
+    title: `Precision Pilot | ${SITE_NAME}`,
+    description:
+      'Precision Pilot: enterprise tools for fleet owners, dispatchers, and operations—OTR freight, equipment, and dedicated carrier networks. Web, Android, iOS, and Windows.',
+  },
+  precisionPilotTest: {
+    title: `Precision Pilot (pre-release test) | ${SITE_NAME}`,
+    description:
+      'Pre-release test environment for Precision Pilot. For internal QA only—not indexed by search engines.',
+  },
+  privacy: {
+    title: `Privacy Policy | ${SITE_NAME}`,
+    description:
+      'How Red Domino Holdings collects, uses, and protects personal information when you use our website and related services.',
+  },
+  terms: {
+    title: `Terms of Service | ${SITE_NAME}`,
+    description:
+      'Terms governing use of the Red Domino Holdings website and related services.',
+  },
+}
+
+/**
+ * @param {string} origin - e.g. https://www.reddominoholdings.com (no trailing slash)
+ */
+export function buildOrganizationJsonLd(origin) {
+  const base = origin.replace(/\/$/, '')
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE_NAME,
+    url: base,
+    description: SEO_COPY.home.description,
+    logo: `${base}/icons.svg`,
+  }
+}

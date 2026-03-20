@@ -1,29 +1,33 @@
+import { Seo } from '../components/Seo'
+import { SEO_COPY } from '../config/site'
 import { LegalPageLayout, LegalSection } from './LegalPageLayout'
 
 const UPDATED = 'March 20, 2026'
 
 export function PrivacyPolicy() {
   return (
-    <LegalPageLayout title="Privacy Policy" updated={UPDATED}>
-      <p className="text-[#9ca3af]">
-        Red Domino Holdings and its affiliates (collectively, “Red Domino,” “we,” “us,” or “our”) are
-        committed to protecting privacy. This Privacy Policy (“Policy”) explains how we collect, use,
-        disclose, retain, secure, and otherwise process information—including personal information—in
-        connection with our public website located at the domain(s) where this Policy is posted (the
-        “Site”). This Policy is designed to meet common expectations of regulators, business partners,
-        and visitors, including where applicable the California Consumer Privacy Act as amended by the
-        California Privacy Rights Act (“CCPA/CPRA”), the Virginia Consumer Data Protection Act
-        (“VCDPA”), the Colorado Privacy Act (“CPA”), the Connecticut Data Privacy Act (“CTDPA”), the
-        Utah Consumer Privacy Act (“UCPA”), the Texas Data Privacy and Security Act (“TDPSA”), the
-        Oregon Consumer Privacy Act (“OCPA”), the Montana Consumer Data Privacy Act (“MCDPA”), the
-        Delaware Personal Data Privacy Act (“DPDPA”), the EU and UK General Data Protection Regulation
-        (“GDPR”), the UK Data Protection Act 2018, and the Swiss Federal Act on Data Protection (“FADP”).
-        This Policy does not govern information collected in other contexts (for example, separate
-        enterprise agreements, mobile applications, employee or applicant programs, or investor
-        relations portals), which are governed by their own terms and notices.
-      </p>
+    <>
+      <Seo title={SEO_COPY.privacy.title} description={SEO_COPY.privacy.description} />
+      <LegalPageLayout title="Privacy Policy" updated={UPDATED}>
+        <p className="text-[#9ca3af]">
+          Red Domino Holdings and its affiliates (collectively, “Red Domino,” “we,” “us,” or “our”) are
+          committed to protecting privacy. This Privacy Policy (“Policy”) explains how we collect, use,
+          disclose, retain, secure, and otherwise process information—including personal information—in
+          connection with our public website located at the domain(s) where this Policy is posted (the
+          “Site”). This Policy is designed to meet common expectations of regulators, business partners,
+          and visitors, including where applicable the California Consumer Privacy Act as amended by the
+          California Privacy Rights Act (“CCPA/CPRA”), the Virginia Consumer Data Protection Act
+          (“VCDPA”), the Colorado Privacy Act (“CPA”), the Connecticut Data Privacy Act (“CTDPA”), the
+          Utah Consumer Privacy Act (“UCPA”), the Texas Data Privacy and Security Act (“TDPSA”), the
+          Oregon Consumer Privacy Act (“OCPA”), the Montana Consumer Data Privacy Act (“MCDPA”), the
+          Delaware Personal Data Privacy Act (“DPDPA”), the EU and UK General Data Protection Regulation
+          (“GDPR”), the UK Data Protection Act 2018, and the Swiss Federal Act on Data Protection
+          (“FADP”). This Policy does not govern information collected in other contexts (for example,
+          separate enterprise agreements, mobile applications, employee or applicant programs, or
+          investor relations portals), which are governed by their own terms and notices.
+        </p>
 
-      <LegalSection title="1. Scope of this Policy">
+        <LegalSection title="1. Scope of this Policy">
         <p>
           This Policy applies to personal information we process when you interact with the Site,
           including when you browse, use features, submit forms, communicate with us, or otherwise
@@ -594,5 +598,6 @@ export function PrivacyPolicy() {
         data processing agreements, transfer mechanisms, and industry-specific rules.
       </p>
     </LegalPageLayout>
+    </>
   )
 }

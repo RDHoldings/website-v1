@@ -26,6 +26,7 @@ export function Button({ children, variant = 'gold', href, className = '', ...pr
 
   return (
     <motion.button
+      type="button"
       className={combinedClassName}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}

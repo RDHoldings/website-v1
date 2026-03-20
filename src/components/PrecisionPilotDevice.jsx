@@ -133,7 +133,7 @@ export function PrecisionPilotDevice() {
                 reducedMotion ? (
                   <img
                     src={currentSrc}
-                    alt=""
+                    alt="Precision Pilot application screen example"
                     className={imgClass}
                     draggable={false}
                     decoding="async"
@@ -144,7 +144,7 @@ export function PrecisionPilotDevice() {
                     <motion.img
                       key={`${currentSrc}-${index}`}
                       src={currentSrc}
-                      alt=""
+                      alt="Precision Pilot application screen example"
                       className={imgClass}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
