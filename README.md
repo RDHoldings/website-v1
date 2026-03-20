@@ -21,7 +21,7 @@ A production-oriented marketing site for **Red Domino Holdings**: responsive lan
 - [Legal & compliance content](#legal--compliance-content)
 - [Environment variables](#environment-variables)
 - [Building for production](#building-for-production)
-- [Deployment notes](#deployment-notes)
+- [GitHub Pages & custom domain (Squarespace)](#github-pages--custom-domain-squarespace)
 - [Linting](#linting)
 - [Troubleshooting](#troubleshooting)
 - [Maintenance checklist](#maintenance-checklist)
@@ -114,7 +114,9 @@ npm run preview
 ## Project structure
 
 ```
+├── .github/workflows/           # CI — deploy-github-pages.yml → GitHub Pages
 ├── public/                      # Static files (copied to dist root as-is)
+│   ├── CNAME.example            # Copy to CNAME with your hostname for custom domain
 │   ├── downloads/precision-pilot/  # Optional hosted installers (see below)
 │   ├── favicon.svg
 │   ├── hero-video.mp4           # Optional; referenced by Hero
@@ -239,11 +241,65 @@ Output: **`dist/`** — static HTML, JS, CSS, and hashed assets suitable for any
 
 ---
 
-## Deployment notes
+## GitHub Pages & custom domain (Squarespace)
 
-- **SPA deep links:** Hosts must serve **`index.html`** for unknown paths (e.g. `/privacy`), or direct visits to `/privacy` will 404. Configure your host’s **rewrite rules** or use the **GitHub Pages SPA `404.html` pattern** if applicable.
-- **Custom domain + HTTPS:** Configure DNS per your provider; enable **Enforce HTTPS** in GitHub Pages when using that platform.
-- **Repository:** Ensure `git remote` points at your canonical GitHub URL and branch (e.g. `main`).
+This repo includes **`.github/workflows/deploy-github-pages.yml`**, which on every push to **`main`** runs `npm ci` → `npm run build`, copies **`index.html`** to **`404.html`** (so routes like `/privacy` work on refresh), and publishes **`dist/`** to GitHub Pages.
+
+### 1. Enable Pages in the repository
+
+1. Open **GitHub** → **RDHoldings/website-v1** → **Settings** → **Pages**.
+2. Under **Build and deployment** → **Source**, choose **GitHub Actions** (not “Deploy from a branch”).
+3. Commit and push the workflow file (if it is not on `main` yet). The **Actions** tab should show a **Deploy to GitHub Pages** run; when it succeeds, the site is live at:
+   - **Project URL:** `https://rdholdings.github.io/website-v1/`  
+   (GitHub shows the exact URL under **Settings → Pages**.)
+
+`vite.config.js` uses **`base: '/'`**, which is correct when the site is served at the **root of your custom domain**. You do **not** need `basename` on `BrowserRouter` for a root custom domain.
+
+### 2. Custom domain + `CNAME` in the repo
+
+GitHub needs a **`CNAME`** file in the **published** site (the contents of `dist/`). Vite copies everything from **`public/`** into `dist/`, so:
+
+1. Copy **`public/CNAME.example`** to **`public/CNAME`** (same folder).
+2. Edit **`public/CNAME`** so it contains **only one line**: the hostname you want GitHub to use, e.g. `www.reddominoholdings.com` (no `https://`, no path).
+3. Commit and push. The next workflow run will include `CNAME` in the deployment.
+
+Alternatively, you can add the custom domain only in **Settings → Pages → Custom domain**; GitHub may still expect the **`public/CNAME`** file for Actions-based builds—keeping **`public/CNAME`** in sync with that setting avoids mismatches.
+
+### 3. Tell GitHub your custom domain
+
+1. **Settings** → **Pages** → **Custom domain** → enter your hostname (e.g. `www.yourdomain.com`).
+2. Save. GitHub will show **DNS records** to add (and may verify once DNS propagates).
+3. When checks pass, enable **Enforce HTTPS**.
+
+### 4. DNS at Squarespace
+
+Use **Squarespace Domains** (or wherever your domain’s **DNS** is managed—sometimes DNS is at the registrar, not Squarespace).
+
+**If you use `www` (recommended with GitHub Pages):**
+
+| Type | Host / Name | Data / Points to |
+|------|-------------|------------------|
+| **CNAME** | `www` | **`rdholdings.github.io`** |
+
+Do **not** include `https://` or `/website-v1`. For a **project** site, the CNAME target is still the **org (or user) Pages hostname** — [GitHub: DNS for project sites](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).
+
+**If you use the apex domain (`@` / bare domain):**
+
+Use the **A** (and **AAAA** if shown) records GitHub lists for your repository’s Pages settings. IPs can change — always copy from **current GitHub documentation**:  
+[Configuring an apex domain](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain).
+
+**Squarespace UI tips:** Look for **DNS settings**, **Custom records**, or **Advanced DNS**. Names vary by product; add the same record **types** and **values** GitHub shows.
+
+Propagation can take from a few minutes to 48 hours.
+
+### 5. Squarespace “website” vs this GitHub site
+
+- If the domain currently opens a **Squarespace-built site**, pointing **`www`** to GitHub will send **`www`** visitors to **this** repo’s Pages site instead. Plan whether **`www`** or the **apex** should show GitHub vs Squarespace, or use a **subdomain** (e.g. `portal.`) for one of them.
+- You can keep **email** or other DNS records as-is; only add/change the records GitHub requires.
+
+### 6. Other hosts
+
+The same **`dist/`** output works on **Netlify**, **Vercel**, **Cloudflare Pages**, etc., with their SPA / rewrite rules as needed.
 
 ---
 
@@ -262,7 +318,9 @@ If ESLint fails due to **flat config** / plugin compatibility, align `eslint.con
 | Issue | Suggestion |
 |-------|------------|
 | Blank or broken styles after deploy | Check Vite **`base`** matches your hosted path; hard-refresh CDN. |
-| `/privacy` 404 on refresh | Configure host SPA fallback to `index.html`. |
+| `/privacy` 404 on refresh | On GitHub Pages, the workflow copies `index.html` → `404.html`. For other hosts, configure SPA fallback. |
+| Pages workflow fails | Repo **Settings → Pages** must use **GitHub Actions** as source; org must allow Actions / Pages. |
+| Custom domain not verifying | Match **`public/CNAME`** to Settings → Pages; wait for DNS; check CNAME target is `rdholdings.github.io` for `www`. |
 | Screenshots missing in mockup | Add matching PNGs or adjust globs in `PrecisionPilotDevice.jsx`. |
 | Fonts look wrong | Confirm font files exist under `src/assets/fonts/` and paths in `fonts.css`. |
 | Hero video doesn’t play | Add `public/hero-video.mp4`; ensure codec is web-friendly (e.g. H.264 + AAC). |
