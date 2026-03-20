@@ -51,10 +51,16 @@ jobs:
           set -e
           ls -la dist
           echo ""
+          for name in precision-pilot precision-pilot-test privacy terms; do
+            if [ ! -f "dist/$name/index.html" ]; then
+              echo "dist/$name/index.html missing (postbuild SPA shells); failing"
+              exit 1
+            fi
+          done
           for name in precision-pilot precision-pilot-test; do
             if [ -d "dist/$name" ]; then
               count=$(find "dist/$name" -type f | wc -l)
-              echo "dist/$name: $count file(s) (from public/$name — shipped with this deploy)"
+              echo "dist/$name: $count file(s) (PP static bundle + SPA shell index.html)"
             else
               echo "dist/$name: missing (unexpected — public/ should always copy); failing"
               exit 1

@@ -276,6 +276,8 @@ npm run build
 
 Output: **`dist/`** — static HTML, JS, CSS, and hashed assets suitable for any static host (GitHub Pages, Netlify, Vercel, S3, etc.).
 
+After **`vite build`**, **`postbuild`** runs **`scripts/copy-spa-route-shells.mjs`**, which drops a copy of **`index.html`** into **`precision-pilot/`**, **`precision-pilot-test/`**, **`privacy/`**, and **`terms/`** so hosts like GitHub Pages return **HTTP 200** (not **404**) for those URLs.
+
 ---
 
 ## GitHub Pages & custom domain (Squarespace)
@@ -362,7 +364,7 @@ If ESLint fails due to **flat config** / plugin compatibility, align `eslint.con
 | Route blank with URL ending in `/` (e.g. `/precision-pilot-test/`) | **`TrailingSlashRedirect`** strips the slash so React Router matches; hard-refresh after deploy. |
 | Browser shows “invalid response” on apex | Usually **DNS / HTTPS** for the bare domain (see **`docs/DNS_GITHUB_PAGES.md`**). `curl -sI https://yourdomain.com/...` should return headers from **GitHub.com**. |
 | `/privacy` 404 on refresh | On GitHub Pages, the workflow copies `index.html` → `404.html`. For other hosts, configure SPA fallback. |
-| DevTools shows **404** for a deep link (but the SPA loads) | **Normal on GitHub Pages**: unknown paths return **404** status with the SPA HTML. Crawlers may still see 404 — consider a host that rewrites to **200** if that matters. |
+| DevTools shows **404** for a deep link (but the SPA loads) | **Fixed in this repo**: `postbuild` copies `index.html` into `precision-pilot/`, `precision-pilot-test/`, `privacy/`, and `terms/` so GitHub Pages returns **200** for those paths. `404.html` still covers any other unknown route. |
 | Pages workflow fails | Repo **Settings → Pages** must use **GitHub Actions** as source; org must allow Actions / Pages. |
 | Custom domain not verifying | Match **`public/CNAME`** to Settings → Pages; wait for DNS; check CNAME target is `rdholdings.github.io` for `www`. |
 | Screenshots missing in mockup | Add matching PNGs or adjust globs in `PrecisionPilotDevice.jsx`. |

@@ -13,7 +13,7 @@ export default [
   { ignores: ['dist/**'] },
   js.configs.recommended,
   {
-    files: ['vite.config.js'],
+    files: ['vite.config.js', 'scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
   },
   {
