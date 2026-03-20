@@ -17,7 +17,7 @@ A production-oriented marketing site for **Red Domino Holdings**: responsive lan
 - [Routing](#routing)
 - [Configuration](#configuration)
 - [Assets & media](#assets--media)
-- [Precision Pilot downloads](#precision-pilot-downloads)
+- [Precision Pilot web shell](#precision-pilot-web-shell-routes) · [downloads](#precision-pilot-downloads)
 - [Legal & compliance content](#legal--compliance-content)
 - [Environment variables](#environment-variables)
 - [Building for production](#building-for-production)
@@ -144,11 +144,13 @@ npm run preview
 
 ## Routing
 
-| Path        | Page |
-|------------|------|
-| `/`        | Marketing home (Header, Hero, Divisions, Tech, Footer) |
-| `/privacy` | Privacy Policy |
-| `/terms`   | Terms of Service |
+| Path                     | Page |
+|--------------------------|------|
+| `/`                      | Marketing home (Header, Hero, Divisions, Tech, Footer) |
+| `/precision-pilot`       | Precision Pilot **production** web shell (iframe + config) |
+| `/precision-pilot-test`  | Precision Pilot **pre-release** web shell (test banner, `noindex`) |
+| `/privacy`               | Privacy Policy |
+| `/terms`                 | Terms of Service |
 
 `BrowserRouter` is mounted in `src/main.jsx`. Footer and nav use `Link` / paths such as `/#divisions` and `/#tech` for in-page anchors.
 
@@ -160,10 +162,22 @@ npm run preview
 
 Central place for:
 
-- **Audience** one-liner and **Learn more** `href` (mailto, future product path, or external URL).
+- **Audience** one-liner and **Learn more** `href` (defaults to **`/precision-pilot`**).
 - **Download** metadata per platform: `fileUrl`, optional `storeUrl`, `storeLabel`, and `enabled`.
+- **`precisionPilotWebApp`** — production vs test **iframe** URLs for the web shell routes (see below).
 
 Set `enabled: true` when a build or URL is live. Paths under `/downloads/...` map to `public/downloads/...`.
+
+### Precision Pilot web shell (routes)
+
+| Path | Purpose |
+|------|---------|
+| **`/precision-pilot`** | Production shell: full-viewport **iframe** when `precisionPilotWebApp.productionEmbedUrl` is set (HTTPS URL or same-site path). |
+| **`/precision-pilot-test`** | Pre-release shell: uses **`testEmbedUrl`** + optional **`testUrlExtraParams`** (e.g. `debug=1`) for staging. Includes a visible test banner, **noindex** meta, and debug line showing the resolved iframe `src`. |
+
+Until embed URLs are set, both routes show setup instructions and the **download** cards. Point your web app (Vercel, Cloudflare, etc.) at these paths for deep links, or set embed URLs to load that app inside the iframe.
+
+**CORS / cookies:** If the iframe `src` is **another origin**, your app must allow being embedded (`X-Frame-Options` / CSP `frame-ancestors`) where appropriate.
 
 ### Vite (`vite.config.js`)
 
@@ -333,7 +347,8 @@ If ESLint fails due to **flat config** / plugin compatibility, align `eslint.con
 
 ## Maintenance checklist
 
-- [ ] Replace placeholder **mailto** and download URLs in `precisionPilot.js`.
+- [ ] Set **`precisionPilotWebApp.productionEmbedUrl`** / **`testEmbedUrl`** when the web client is hosted; confirm **`/precision-pilot`** and **`/precision-pilot-test`** behave as expected.
+- [ ] Replace placeholder download URLs in `precisionPilot.js` and set **`enabled: true`** per platform when live.
 - [ ] Refresh **Privacy** / **Terms** dates and body copy with legal review.
 - [ ] Add **DMCA designated agent** details in Terms if you rely on that section.
 - [ ] Keep **dependencies** patched (`npm audit`, periodic `npm update`).

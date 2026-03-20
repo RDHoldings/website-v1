@@ -4,6 +4,7 @@ import logoShort from '../../assets/RD Holdings Logo (Short Logo) 2.png'
 
 const footerLinks = [
   { to: '/#divisions', label: 'Our Divisions' },
+  { to: '/precision-pilot', label: 'Precision Pilot' },
   { to: '/#tech', label: 'Proprietary Tech' },
   { to: '/#leadership', label: 'Leadership' },
   { to: '/#contact', label: 'Contact' },

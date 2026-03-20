@@ -14,6 +14,41 @@
 /** Base URL for self-hosted bundles (relative to site origin) */
 export const PRECISION_PILOT_DOWNLOAD_BASE = '/downloads/precision-pilot'
 
+/**
+ * Web client loaded inside `/precision-pilot` and `/precision-pilot-test`.
+ * Set embed URLs when your SPA is hosted (Vercel, Cloudflare, same repo under /app/, etc.).
+ */
+export const precisionPilotWebApp = {
+  /** Production web client — iframe `src` (https://… or same-origin path e.g. /precision-pilot/app/) */
+  productionEmbedUrl: '',
+  /** Pre-release / staging web client for `/precision-pilot-test` */
+  testEmbedUrl: '',
+  /**
+   * Query string appended to **test** embed only (no leading `?` required).
+   * Example: `debug=1&env=staging` — use for feature flags your app reads from the URL.
+   */
+  testUrlExtraParams: 'debug=1&env=staging',
+}
+
+/**
+ * Resolved iframe src for the Precision Pilot shell routes.
+ * @param {'production' | 'test'} variant
+ * @returns {string | null}
+ */
+export function getPrecisionPilotWebEmbedSrc(variant) {
+  const raw =
+    variant === 'test'
+      ? precisionPilotWebApp.testEmbedUrl?.trim()
+      : precisionPilotWebApp.productionEmbedUrl?.trim()
+  if (!raw) return null
+  if (variant !== 'test' || !precisionPilotWebApp.testUrlExtraParams?.trim()) {
+    return raw
+  }
+  const extra = precisionPilotWebApp.testUrlExtraParams.replace(/^\?/, '').trim()
+  if (!extra) return raw
+  return raw.includes('?') ? `${raw}&${extra}` : `${raw}?${extra}`
+}
+
 export const precisionPilot = {
   /** One line: who the app is for */
   audienceLine:
@@ -21,8 +56,7 @@ export const precisionPilot = {
 
   learnMore: {
     label: 'Learn more',
-    /** Swap for `/precision-pilot` or another route when you add a product page */
-    href: 'mailto:info@reddominoholdings.com?subject=Precision%20Pilot%20inquiry',
+    href: '/precision-pilot',
   },
 
   downloadsHeading: 'Get Precision Pilot',
@@ -64,7 +98,8 @@ export const precisionPilot = {
       id: 'web',
       name: 'Web',
       description: 'Full experience in the browser — no install required.',
-      fileUrl: 'https://app.precisionpilot.example.com',
+      /** Opens the hosted web shell on this site; enable when the product is public */
+      fileUrl: '/precision-pilot',
       storeUrl: null,
       storeLabel: null,
       enabled: false,

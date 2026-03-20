@@ -58,10 +58,19 @@ function PlatformCard({ platform }) {
   const isAvailable = showStore || showFile
 
   const fileIsRemote = platform.fileUrl && isHttpUrl(platform.fileUrl)
-  const isWebApp = platform.id === 'web' && fileIsRemote
+  const fileIsInternalPath = platform.fileUrl?.startsWith('/')
+  const isWebApp =
+    platform.id === 'web' && (fileIsRemote || Boolean(fileIsInternalPath))
   const fileLabel = isWebApp ? 'Open web app' : 'Download'
 
   const primaryFileOnly = showFile && !showStore
+  const FileActionIcon = isWebApp ? Globe : Download
+
+  const fileButtonClass = `inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+    primaryFileOnly
+      ? 'bg-gradient-gold text-[#0a0a0a] hover:opacity-90'
+      : 'border border-[#c49a3a]/40 text-[#f3f4f6] hover:bg-[#c49a3a]/10'
+  }`
 
   return (
     <div className="flex flex-col rounded-xl border border-[#c49a3a]/20 bg-[#111111]/60 p-5 transition-colors hover:border-[#c49a3a]/35">
@@ -88,29 +97,34 @@ function PlatformCard({ platform }) {
           </a>
         )}
 
-        {showFile && (
+        {showFile && fileIsInternalPath && isWebApp ? (
+          <Link to={platform.fileUrl} className={fileButtonClass}>
+            <FileActionIcon
+              className={`h-4 w-4 shrink-0 ${primaryFileOnly ? 'opacity-90' : ''}`}
+              aria-hidden
+            />
+            {fileLabel}
+          </Link>
+        ) : null}
+
+        {showFile && !(fileIsInternalPath && isWebApp) ? (
           <a
             href={platform.fileUrl}
             {...(fileIsRemote
               ? { target: '_blank', rel: 'noopener noreferrer' }
               : { download: true })}
-            className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
-              primaryFileOnly
-                ? 'bg-gradient-gold text-[#0a0a0a] hover:opacity-90'
-                : 'border border-[#c49a3a]/40 text-[#f3f4f6] hover:bg-[#c49a3a]/10'
-            }`}
+            className={fileButtonClass}
           >
-            {primaryFileOnly ? (
-              <Download className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-            ) : (
-              <Download className="h-4 w-4 shrink-0" aria-hidden />
-            )}
+            <FileActionIcon
+              className={`h-4 w-4 shrink-0 ${primaryFileOnly ? 'opacity-90' : ''}`}
+              aria-hidden
+            />
             {fileLabel}
             {fileIsRemote && !primaryFileOnly ? (
               <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
             ) : null}
           </a>
-        )}
+        ) : null}
 
         {!isAvailable && (
           <p className="text-center text-xs font-medium uppercase tracking-wide text-[#6b7280]">
