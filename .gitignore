@@ -25,3 +25,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Flutter web lists assets/.env in AssetManifest — track placeholder only (comments; no secrets)
+!public/precision-pilot/app/assets/.env
+!public/precision-pilot-test/app/assets/.env

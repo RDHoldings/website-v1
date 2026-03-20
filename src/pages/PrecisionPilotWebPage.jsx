@@ -59,14 +59,14 @@ export function PrecisionPilotWebPage({ variant }) {
           <strong className="font-semibold tracking-wide">Pre-release test</strong>
           <span className="mx-2 text-amber-200/80">·</span>
           <span className="text-amber-100/90">
-            Not for end users — use{' '}
+            Not for end users — use the{' '}
             <Link
               to="/precision-pilot"
               className="font-medium text-amber-300 underline decoration-amber-500/50 underline-offset-2 hover:text-amber-200"
             >
-              /precision-pilot
-            </Link>{' '}
-            for production.
+              production Precision Pilot shell
+            </Link>
+            .
           </span>
         </div>
       ) : null}

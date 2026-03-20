@@ -180,6 +180,8 @@ If embed URLs are cleared (`''`), both routes show setup copy and the **download
 
 **Google Maps (Flutter web):** `public/precision-pilot*/app/index.html` loads the Maps JS API with placeholder **`YOUR_GOOGLE_MAPS_WEB_API_KEY`**. At **`npm run build`**, `scripts/inject-google-maps-key.mjs` replaces it when **`GOOGLE_MAPS_WEB_API_KEY`** is set (local env or GitHub Actions secret **`GOOGLE_MAPS_WEB_API_KEY`** — already wired in **`.github/workflows/deploy-github-pages.yml`**). Restrict the key by HTTP referrer to your domain in Google Cloud Console.
 
+**Flutter `assets/.env`:** The bundled app expects **`public/precision-pilot*/app/assets/.env`** (tracked placeholder, comments only — see **`.gitignore`** exceptions). Replace with real values only via your Flutter CI if needed; do not commit secrets.
+
 **Static Precision Pilot builds in this repo (tracked + deployed):**
 
 | Path in repo | Served at | Notes |
