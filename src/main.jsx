@@ -6,7 +6,9 @@ import './styles/globals.css'
 import App from './App.jsx'
 
 const routerBasename = (() => {
-  const b = import.meta.env.BASE_URL || '/'
+  let b = import.meta.env.BASE_URL || '/'
+  if (b === 'null' || b === 'undefined') b = '/'
+  if (b !== '/' && !b.startsWith('/')) b = `/${b}`
   if (b === '/') return undefined
   return b.endsWith('/') ? b.slice(0, -1) : b
 })()

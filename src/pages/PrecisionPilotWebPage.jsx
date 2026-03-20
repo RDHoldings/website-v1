@@ -5,6 +5,7 @@ import { PrecisionPilotDownloads } from '../components/PrecisionPilotDownloads'
 import { Seo } from '../components/Seo'
 import { SEO_COPY, SITE_NAME } from '../config/site'
 import { getPrecisionPilotWebEmbedSrc } from '../config/precisionPilot'
+import { toAbsoluteSiteUrl } from '../utils/sitePaths'
 
 /**
  * @param {{ variant: 'production' | 'test' }} props
@@ -15,6 +16,11 @@ export function PrecisionPilotWebPage({ variant }) {
   const iframeSrc = useMemo(
     () => getPrecisionPilotWebEmbedSrc(variant),
     [variant],
+  )
+
+  const iframeSrcAbsolute = useMemo(
+    () => (iframeSrc ? toAbsoluteSiteUrl(iframeSrc) : null),
+    [iframeSrc],
   )
 
   const seo = isTest ? SEO_COPY.precisionPilotTest : SEO_COPY.precisionPilot
@@ -104,26 +110,36 @@ export function PrecisionPilotWebPage({ variant }) {
                 Production shell
               </Link>
             )}
+            {iframeSrcAbsolute ? (
+              <a
+                href={iframeSrcAbsolute}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#6b7280] underline decoration-white/20 underline-offset-2 hover:text-[#9ca3af]"
+              >
+                Open app in new tab
+              </a>
+            ) : null}
           </nav>
         </div>
       </header>
 
-      {isTest && iframeSrc ? (
+      {isTest && iframeSrcAbsolute ? (
         <div
           className="shrink-0 border-b border-white/10 bg-black/40 px-4 py-2 font-mono text-xs text-[#9ca3af] md:px-6"
           aria-label="Test build: full iframe URL (path plus testUrlExtraParams from config)"
         >
           <span className="text-[#6b7280]">Test iframe · </span>
-          <span className="break-all text-[#d1d5db]">{iframeSrc}</span>
+          <span className="break-all text-[#d1d5db]">{iframeSrcAbsolute}</span>
         </div>
       ) : null}
 
       <main id="site-main" className="flex min-h-0 min-w-0 flex-1 flex-col">
-        {iframeSrc ? (
+        {iframeSrcAbsolute ? (
           <iframe
-            key={iframeSrc}
+            key={iframeSrcAbsolute}
             title={isTest ? 'Precision Pilot (test)' : 'Precision Pilot'}
-            src={iframeSrc}
+            src={iframeSrcAbsolute}
             className="block h-full min-h-0 w-full flex-1 border-0 bg-black"
             loading="eager"
             allow="fullscreen; clipboard-read; clipboard-write"

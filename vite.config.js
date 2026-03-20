@@ -3,7 +3,9 @@ import react from '@vitejs/plugin-react'
 
 function viteBase() {
   const raw = process.env.VITE_BASE_URL?.trim()
-  if (!raw || raw === '/') return '/'
+  // GitHub Actions can surface unset vars oddly; never treat these as real paths
+  if (!raw || raw === '/' || raw === 'null' || raw === 'undefined') return '/'
+  if (!raw.startsWith('/')) return `/${raw.endsWith('/') ? raw : `${raw}/`}`
   return raw.endsWith('/') ? raw : `${raw}/`
 }
 

@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import { useLocation } from 'react-router-dom'
 import { buildOrganizationJsonLd, SITE_NAME, SITE_URL_DEFAULT } from '../config/site'
+import { resolveSitePath } from '../utils/sitePaths'
 
 /**
  * @param {object} props
@@ -27,8 +28,19 @@ export function Seo({
       : SITE_URL_DEFAULT
 
   const pathOnly = pathname.split('?')[0] || '/'
-  const canonicalUrl = `${origin}${pathOnly === '/' ? '/' : pathOnly}`
-  const imageUrl = ogImage || `${origin}/icons.svg`
+  const pathForUrl = pathOnly === '/' ? '/' : pathOnly
+  const relativeCanonical = resolveSitePath(pathForUrl)
+  const canonicalUrl =
+    typeof window !== 'undefined' && window.location?.origin
+      ? new URL(relativeCanonical, `${window.location.origin}/`).href
+      : new URL(relativeCanonical, `${SITE_URL_DEFAULT}/`).href
+
+  const relativeIcons = resolveSitePath('/icons.svg')
+  const defaultImage =
+    typeof window !== 'undefined' && window.location?.origin
+      ? new URL(relativeIcons, `${window.location.origin}/`).href
+      : new URL(relativeIcons, `${SITE_URL_DEFAULT}/`).href
+  const imageUrl = ogImage || defaultImage
 
   let structured = null
   if (jsonLd !== undefined) {

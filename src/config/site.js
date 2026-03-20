@@ -1,3 +1,5 @@
+import { resolveSitePath } from '../utils/sitePaths'
+
 /**
  * Canonical marketing domain for SEO defaults (sitemap, robots, fallbacks before hydration).
  * Override at build time with `VITE_SITE_URL` if needed.
@@ -43,12 +45,14 @@ export const SEO_COPY = {
  */
 export function buildOrganizationJsonLd(origin) {
   const base = origin.replace(/\/$/, '')
+  const logoPath = resolveSitePath('/icons.svg')
+  const logo = new URL(logoPath, `${base}/`).href
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: SITE_NAME,
     url: base,
     description: SEO_COPY.home.description,
-    logo: `${base}/icons.svg`,
+    logo,
   }
 }
