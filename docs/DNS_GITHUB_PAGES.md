@@ -1,8 +1,51 @@
-# Fix `NotServedByPagesError` — DNS for GitHub Pages (RDHoldings / website-v1)
-
-GitHub shows **“Domain does not resolve to the GitHub Pages server”** when DNS does not point **`www`** and/or the **apex** (`@`) to GitHub. This is almost always a **DNS provider (Squarespace)** issue, not the Vite app.
+# DNS for GitHub Pages (RDHoldings / website-v1)
 
 Official reference: [Managing a custom domain for your GitHub Pages site](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site) and [Troubleshooting custom domains](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/troubleshooting-custom-domains-and-github-pages).
+
+---
+
+## Fix `InvalidCNAMEError` for `www.reddominoholdings.com`
+
+GitHub expects a real **DNS CNAME** for **`www`** — not a URL redirect, not an A record on `www`, and not a typo.
+
+### Correct record (exactly)
+
+| Field | Value |
+|--------|--------|
+| **Type** | `CNAME` |
+| **Host / Name** | `www` (or whatever your DNS UI uses for the `www` subdomain only) |
+| **Target / Points to / Data** | **`rdholdings.github.io`** |
+
+Rules:
+
+- **All lowercase:** `rdholdings.github.io`
+- **No** `https://`
+- **No** trailing path (`/website-v1`)
+- **No** `www.rdholdings.github.io`
+- **No** `github.com` or `pages.github.com` as the CNAME target (use **`rdholdings.github.io`** only)
+
+### Common Squarespace mistakes
+
+1. **“Forwarding” or “Website defaults”** — A **forward/redirect** is not a **CNAME**. You need **Domains** → your domain → **DNS** / **Custom records** (or **Google Workspace** area’s **Advanced DNS** in some setups) and add a **CNAME** row as above.
+2. **Wrong target** — `reddominoholdings.com`, `www.reddominoholdings.com`, or Squarespace’s default host will trigger **InvalidCNAMEError**. Replace with **`rdholdings.github.io`**.
+3. **Duplicate `www` records** — Only **one** primary record for `www` should exist. Remove extra **A** or **CNAME** rows for `www` that conflict.
+4. **Host field** — If the panel asks for “full hostname”, use **`www.reddominoholdings.com`** for the name and **`rdholdings.github.io`** for the target (Squarespace docs vary by product).
+
+### Verify after saving (PowerShell)
+
+```powershell
+Resolve-DnsName www.reddominoholdings.com -Type CNAME
+```
+
+You should see **`rdholdings.github.io`** in the CNAME answer (possibly after one hop). If you only see **A** records and no CNAME, GitHub will still report **InvalidCNAMEError**.
+
+Then in GitHub: **Settings → Pages → Custom domain** → save **`www.reddominoholdings.com`** again if needed, wait for the check to pass.
+
+---
+
+## Fix `NotServedByPagesError` (apex / general)
+
+GitHub shows **“Domain does not resolve to the GitHub Pages server”** when **`@`** (and sometimes **`www`**) still points at the wrong servers. This is almost always **DNS at Squarespace**, not the Vite app.
 
 ## Your GitHub Pages default hostname (project site)
 
@@ -65,6 +108,49 @@ Per [GitHub’s apex documentation](https://docs.github.com/en/pages/configuring
 **Remove** conflicting apex records that point to Squarespace’s website hosting (old **A** records for “parking” or Squarespace default site), or GitHub will never see your domain.
 
 If Squarespace offers **ALIAS** / **ANAME** on `@`, you can point **`@`** to **`rdholdings.github.io`** instead of the four **A** records — see GitHub’s table [DNS records for your custom domain](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#dns-records-for-your-custom-domain).
+
+---
+
+## Enforce HTTPS unavailable — “not properly configured” (`reddominoholdings.com`)
+
+GitHub can only turn on **Enforce HTTPS** after it can obtain a TLS certificate (Let’s Encrypt). That requires **every hostname** GitHub associates with your Pages site—often both **`www.reddominoholdings.com`** *and* the apex **`reddominoholdings.com`**—to **resolve correctly to GitHub Pages**.
+
+- If **`www`** is correct (CNAME → `rdholdings.github.io`) but **Enforce HTTPS** still says the problem is **`reddominoholdings.com`**, the **apex** is almost always still wrong: **`@`** must use GitHub’s **A** (and ideally **AAAA**) records from **§ `reddominoholdings.com` (apex)** above—not Squarespace’s default **A** records.
+
+**Check the apex from PowerShell:**
+
+```powershell
+Resolve-DnsName reddominoholdings.com -Type A | Format-Table Name,IPAddress -AutoSize
+```
+
+You want to see GitHub’s addresses (e.g. **`185.199.108.153`** and the other three **185.199.111.x** / **109** / **110** from the table above). If you only see **Squarespace** or unrelated IPs, **HTTPS will stay disabled** until **`@`** is fixed.
+
+After DNS is correct:
+
+1. Wait **up to 24 hours** for propagation and for GitHub to finish certificate provisioning.
+2. **Settings → Pages** — confirm **Custom domain**; click **Save** again if needed.
+3. When the domain check is clean, **Enforce HTTPS** should become available.
+
+More detail: [Troubleshooting custom domains and GitHub Pages](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/troubleshooting-custom-domains-and-github-pages) and [HTTPS for GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/securing-your-github-pages-site-with-https).
+
+---
+
+## `ERR_CERT_COMMON_NAME_INVALID` / “Your connection isn’t private” (Edge, HSTS)
+
+The browser is rejecting the **TLS certificate** for **`reddominoholdings.com`**: the name on the cert doesn’t match the apex (or the cert isn’t GitHub’s yet).
+
+### Likely causes
+
+1. **Certificate still provisioning** — After apex **A** records go live, GitHub/Let’s Encrypt can take **up to an hour or longer** (sometimes **24h**) to issue a cert that includes the apex. Until then, **https://reddominoholdings.com** can show **COMMON_NAME_INVALID**.
+2. **Only `www` on the cert first** — Try **`https://www.reddominoholdings.com`**. If **www** loads but the **apex** does not, wait and re-check **Settings → Pages** until both are covered; do **not** rely on the apex until the cert is valid.
+3. **HSTS stuck in the browser** — If you (or a prior host) sent **HSTS** for `reddominoholdings.com`, Edge will **only** use HTTPS and will keep failing until the cert is valid—or you clear HSTS for testing.
+
+### What to do
+
+1. **Confirm the site on `www`:** open **`https://www.reddominoholdings.com`** (and the default **`https://rdholdings.github.io/website-v1/`**). If those work, DNS and Pages are fine; the apex cert is catching up.
+2. **GitHub:** **Settings → Pages** — ensure **Custom domain** / DNS checks are green; leave **Enforce HTTPS** off until the UI allows it without errors.
+3. **Clear HSTS in Edge (testing only):** address bar → **`edge://net-internals/#hsts`** → **Delete domain security policies** → enter **`reddominoholdings.com`** → Delete. Then retry after GitHub shows a valid certificate (otherwise the error may return).
+4. **Wait** and retry the apex later the same day; if it still fails after **24–48 hours** with correct **A** records, open a ticket with GitHub Support and mention **custom domain** + **certificate**.
 
 ---
 

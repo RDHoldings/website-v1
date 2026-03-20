@@ -245,7 +245,9 @@ Output: **`dist/`** — static HTML, JS, CSS, and hashed assets suitable for any
 
 This repo includes **`.github/workflows/deploy-github-pages.yml`**, which on every push to **`main`** runs `npm ci` → `npm run build`, copies **`index.html`** to **`404.html`** (so routes like `/privacy` work on refresh), and publishes **`dist/`** to GitHub Pages.
 
-**DNS error `NotServedByPagesError`?** Your domain is not pointing at GitHub’s servers (common when Squarespace still has default **A** records on `@`, or **`www`** CNAME is wrong). See **[`docs/DNS_GITHUB_PAGES.md`](docs/DNS_GITHUB_PAGES.md)** for exact **A** / **CNAME** values and Squarespace notes.
+**Important:** Use **only** this workflow for Pages. Do **not** add a second “upload the whole repo” workflow (e.g. GitHub’s default **Deploy static content to Pages** template): it would race the real deploy and can publish **source files** instead of **`dist/`**, breaking the live site.
+
+**DNS errors?** **`InvalidCNAMEError`:** `www` must be a **CNAME** → **`rdholdings.github.io`** (not a redirect to your apex). **`NotServedByPagesError`:** apex **`@`** needs GitHub’s **A** records (or Squarespace is still pointing `@` at Squarespace). See **[`docs/DNS_GITHUB_PAGES.md`](docs/DNS_GITHUB_PAGES.md)** for exact values and Squarespace notes.
 
 ### 1. Enable Pages in the repository
 
