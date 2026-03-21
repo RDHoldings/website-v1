@@ -303,17 +303,8 @@
         }
       }
 
-      /* Maps: placeholder key (immediate); google.maps (after async script has time to load) */
-      function auditMapsPlaceholder() {
-        var scripts = document.querySelectorAll('script[src*="maps.googleapis.com"]');
-        for (var i = 0; i < scripts.length; i++) {
-          if (scripts[i].src.indexOf('YOUR_GOOGLE_MAPS_WEB_API_KEY') !== -1) {
-            console.error(
-              '[Maps] Deploy still has YOUR_GOOGLE_MAPS_WEB_API_KEY in index.html. Set GitHub Actions secret GOOGLE_MAPS_WEB_API_KEY and rebuild so inject-google-maps-key.mjs can replace it.',
-            );
-          }
-        }
-      }
+      /* Maps: do not log on key= in the script URL — after CI inject the URL contains AIzaSy… (expected).
+         Sentry/tools often attach that URL to unrelated messages and it looks like a "leaked key" error. */
       var mapsDiagDone = false;
       function auditMapsAfterDelay() {
         if (mapsDiagDone) return;
@@ -328,7 +319,6 @@
           );
         }
       }
-      setTimeout(auditMapsPlaceholder, 0);
       setTimeout(auditMapsAfterDelay, 9000);
 
       /* Optional: stack for each pointer interaction (noisy; use ?debugTrace=1) */
