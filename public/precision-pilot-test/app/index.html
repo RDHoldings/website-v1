@@ -17,6 +17,70 @@
   <base href="/precision-pilot-test/app/">
 
   <meta charset="UTF-8">
+  <!-- Forward console + errors to parent (test shell) when embedded; must run before Flutter/Maps. -->
+  <script>
+  (function () {
+    try {
+      if (window.parent === window) return;
+      var O = window.location.origin;
+      function stringify(a) {
+        if (a instanceof Error) {
+          return a.name + ': ' + a.message + (a.stack ? '\n' + a.stack : '');
+        }
+        if (typeof a === 'object' && a !== null) {
+          try {
+            return JSON.stringify(a);
+          } catch (e) {
+            return Object.prototype.toString.call(a);
+          }
+        }
+        return String(a);
+      }
+      function send(level, args) {
+        var parts = [];
+        for (var i = 0; i < args.length; i++) parts.push(stringify(args[i]));
+        var msg = parts.join(' ');
+        var stack = '';
+        if (args[0] instanceof Error && args[0].stack) stack = args[0].stack;
+        window.parent.postMessage(
+          {
+            source: 'flutter-console',
+            level: level,
+            message: msg,
+            at: new Date().toISOString(),
+            stack: stack || undefined,
+            href: window.location.href,
+          },
+          O,
+        );
+      }
+      ['log', 'info', 'debug', 'warn', 'error'].forEach(function (level) {
+        var orig = console[level];
+        if (typeof orig !== 'function') return;
+        console[level] = function () {
+          var a = Array.prototype.slice.call(arguments);
+          send(level, a);
+          return orig.apply(console, arguments);
+        };
+      });
+      window.addEventListener(
+        'error',
+        function (ev) {
+          send('error', [
+            '[window.error]',
+            ev.message,
+            (ev.filename || '') + ':' + (ev.lineno || 0) + ':' + (ev.colno || 0),
+            ev.error,
+          ]);
+        },
+        true,
+      );
+      window.addEventListener('unhandledrejection', function (ev) {
+        send('error', ['[unhandledrejection]', ev.reason]);
+      });
+    } catch (e) {}
+  })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">

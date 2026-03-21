@@ -174,7 +174,7 @@ Set `enabled: true` when a build or URL is live. Paths under `/downloads/...` ma
 | Path | Purpose |
 |------|---------|
 | **`/precision-pilot`** | Production shell: full-viewport **iframe** loading **`productionEmbedUrl`** (default **`/precision-pilot/app/`** — Flutter web build with **`base href /precision-pilot/app/`**). |
-| **`/precision-pilot-test`** | Pre-release shell: **`testEmbedUrl`** (default **`/precision-pilot-test/app/`**) + **`testUrlExtraParams`**. Test banner, **noindex** on the marketing shell + test embed `index.html`, debug line for resolved iframe `src`. |
+| **`/precision-pilot-test`** | Pre-release shell: **`testEmbedUrl`** (default **`/precision-pilot-test/app/`**) + **`testUrlExtraParams`**. Test banner, **noindex** on the marketing shell + test embed `index.html`, debug line for resolved iframe `src`. **Two panes:** embedded Flutter app + a second iframe (**`/precision-pilot-test/console-panel.html`**) showing **`console.*`**, **`window.onerror`**, and **`unhandledrejection`** forwarded from the app via **`postMessage`** (see early script in **`public/precision-pilot-test/app/index.html`**). |
 
 If embed URLs are cleared (`''`), both routes show setup copy and the **download** cards instead of an iframe. Point your web app (Vercel, Cloudflare, etc.) at these paths for deep links, or set embed URLs to load that app inside the iframe.
 

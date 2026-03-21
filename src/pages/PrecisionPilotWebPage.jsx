@@ -1,11 +1,11 @@
-import { useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import logoShort from '../assets/RD Holdings Logo (Short Logo) 2.png'
 import { PrecisionPilotDownloads } from '../components/PrecisionPilotDownloads'
 import { Seo } from '../components/Seo'
 import { SEO_COPY, SITE_NAME } from '../config/site'
 import { getPrecisionPilotWebEmbedSrc } from '../config/precisionPilot'
-import { toAbsoluteSiteUrl } from '../utils/sitePaths'
+import { resolveSitePath, toAbsoluteSiteUrl } from '../utils/sitePaths'
 
 /**
  * @param {{ variant: 'production' | 'test' }} props
@@ -22,6 +22,78 @@ export function PrecisionPilotWebPage({ variant }) {
     () => (iframeSrc ? toAbsoluteSiteUrl(iframeSrc) : null),
     [iframeSrc],
   )
+
+  /** Static console sink (second iframe) — only on test route */
+  const consolePanelSrc = useMemo(
+    () => toAbsoluteSiteUrl(resolveSitePath('/precision-pilot-test/console-panel.html')),
+    [],
+  )
+
+  const appIframeRef = useRef(null)
+  const consoleIframeRef = useRef(null)
+  const pendingConsoleRef = useRef([])
+
+  const forwardToConsolePanel = useCallback((payload) => {
+    const win = consoleIframeRef.current?.contentWindow
+    const relay = {
+      source: 'flutter-console-relay',
+      level: payload.level,
+      message: payload.message,
+      at: payload.at,
+      stack: payload.stack,
+      href: payload.href,
+    }
+    if (!win) {
+      pendingConsoleRef.current.push(relay)
+      return
+    }
+    try {
+      win.postMessage(relay, window.location.origin)
+    } catch {
+      pendingConsoleRef.current.push(relay)
+    }
+  }, [])
+
+  const flushConsoleQueue = useCallback(() => {
+    const win = consoleIframeRef.current?.contentWindow
+    if (!win) return
+    const q = pendingConsoleRef.current.splice(0)
+    q.forEach((row) => {
+      try {
+        win.postMessage(row, window.location.origin)
+      } catch {
+        /* ignore */
+      }
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!isTest) return undefined
+
+    const onMessage = (event) => {
+      if (event.origin !== window.location.origin) return
+      if (!event.data || event.data.source !== 'flutter-console') return
+      const appWin = appIframeRef.current?.contentWindow
+      if (!appWin || event.source !== appWin) return
+      forwardToConsolePanel(event.data)
+    }
+
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [isTest, forwardToConsolePanel])
+
+  const clearForwardedConsole = useCallback(() => {
+    const win = consoleIframeRef.current?.contentWindow
+    if (!win) return
+    try {
+      win.postMessage(
+        { source: 'flutter-console-relay', action: 'clear' },
+        window.location.origin,
+      )
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   const seo = isTest ? SEO_COPY.precisionPilotTest : SEO_COPY.precisionPilot
 
@@ -120,6 +192,15 @@ export function PrecisionPilotWebPage({ variant }) {
                 Open app in new tab
               </a>
             ) : null}
+            {isTest ? (
+              <button
+                type="button"
+                onClick={clearForwardedConsole}
+                className="rounded-md border border-zinc-600 bg-zinc-900 px-2.5 py-1 text-xs font-medium text-zinc-200 hover:border-zinc-500 hover:bg-zinc-800"
+              >
+                Clear console
+              </button>
+            ) : null}
           </nav>
         </div>
       </header>
@@ -129,22 +210,61 @@ export function PrecisionPilotWebPage({ variant }) {
           className="shrink-0 border-b border-white/10 bg-black/40 px-4 py-2 font-mono text-xs text-[#9ca3af] md:px-6"
           aria-label="Test build: full iframe URL (path plus testUrlExtraParams from config)"
         >
-          <span className="text-[#6b7280]">Test iframe · </span>
+          <span className="text-[#6b7280]">App iframe · </span>
           <span className="break-all text-[#d1d5db]">{iframeSrcAbsolute}</span>
+          <span className="mt-1 block text-[#6b7280]">
+            Two panes: embedded Flutter app (left) and forwarded <code className="text-[#a1a1aa]">console.*</code>,{' '}
+            <code className="text-[#a1a1aa]">window.onerror</code>, and{' '}
+            <code className="text-[#a1a1aa]">unhandledrejection</code> (right). Open DevTools on the left iframe for
+            full browser debugging.
+          </span>
         </div>
       ) : null}
 
       <main id="site-main" className="flex min-h-0 min-w-0 flex-1 flex-col">
         {iframeSrcAbsolute ? (
-          <iframe
-            key={iframeSrcAbsolute}
-            title={isTest ? 'Precision Pilot (test)' : 'Precision Pilot'}
-            src={iframeSrcAbsolute}
-            className="block h-full min-h-0 w-full flex-1 border-0 bg-black"
-            loading="eager"
-            allow="fullscreen; geolocation"
-            referrerPolicy="strict-origin-when-cross-origin"
-          />
+          isTest ? (
+            <div className="flex min-h-0 flex-1 flex-col gap-2 p-2 md:flex-row md:gap-3 md:p-3">
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col md:max-w-[58%]">
+                <p className="mb-1 shrink-0 px-1 text-[10px] font-medium uppercase tracking-wide text-[#6b7280]">
+                  App
+                </p>
+                <iframe
+                  ref={appIframeRef}
+                  key={iframeSrcAbsolute}
+                  title="Precision Pilot (test) — embedded app"
+                  src={iframeSrcAbsolute}
+                  className="block min-h-[40vh] w-full flex-1 rounded-md border border-white/10 bg-black md:min-h-0"
+                  loading="eager"
+                  allow="fullscreen; geolocation"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
+              </div>
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col md:max-w-[42%]">
+                <p className="mb-1 shrink-0 px-1 text-[10px] font-medium uppercase tracking-wide text-[#6b7280]">
+                  Forwarded console
+                </p>
+                <iframe
+                  ref={consoleIframeRef}
+                  title="Precision Pilot (test) — forwarded console output"
+                  src={consolePanelSrc}
+                  className="block min-h-[35vh] w-full flex-1 rounded-md border border-amber-900/40 bg-[#050505] md:min-h-0"
+                  loading="eager"
+                  onLoad={flushConsoleQueue}
+                />
+              </div>
+            </div>
+          ) : (
+            <iframe
+              key={iframeSrcAbsolute}
+              title="Precision Pilot"
+              src={iframeSrcAbsolute}
+              className="block h-full min-h-0 w-full flex-1 border-0 bg-black"
+              loading="eager"
+              allow="fullscreen; geolocation"
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          )
         ) : (
           <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
             <h1

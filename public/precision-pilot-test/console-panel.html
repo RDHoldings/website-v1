@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App console (test)</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; background: #050505; color: #e5e5e5; }
+    body {
+      font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    #toolbar {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      padding: 6px 10px; border-bottom: 1px solid #27272a; background: #0a0a0a; flex-shrink: 0;
+    }
+    #toolbar button {
+      font: inherit; cursor: pointer; padding: 4px 10px; border-radius: 4px;
+      border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7;
+    }
+    #toolbar button:hover { background: #27272a; }
+    #stats { color: #71717a; font-size: 10px; margin-left: auto; }
+    #log {
+      flex: 1; min-height: 0;
+      padding: 8px 10px 16px; white-space: pre-wrap; word-break: break-word;
+      overflow-y: auto;
+    }
+    .entry { border-left: 3px solid #3f3f46; padding: 4px 0 6px 10px; margin: 0 0 6px; }
+    .entry.error { border-left-color: #dc2626; }
+    .entry.warn { border-left-color: #ca8a04; }
+    .entry.info { border-left-color: #2563eb; }
+    .entry.debug { border-left-color: #6b7280; }
+    .meta { color: #71717a; font-size: 10px; margin-bottom: 4px; }
+    .body { color: #d4d4d4; }
+    .stack { margin-top: 6px; color: #a1a1aa; font-size: 10px; white-space: pre-wrap; }
+    .href { color: #52525b; font-size: 10px; margin-top: 4px; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <span style="color:#a1a1aa;font-size:11px;">Forwarded from embedded app</span>
+    <button type="button" id="btn-clear">Clear</button>
+    <button type="button" id="btn-copy">Copy all</button>
+    <span id="stats"></span>
+  </div>
+  <div id="log" role="log" aria-live="polite" aria-relevant="additions"></div>
+  <script>
+    (function () {
+      var MAX = 3000;
+      var logEl = document.getElementById('log');
+      var statsEl = document.getElementById('stats');
+      var count = 0;
+
+      function render(payload) {
+        var level = (payload.level || 'log').toLowerCase();
+        var wrap = document.createElement('div');
+        wrap.className = 'entry ' + (level === 'warning' ? 'warn' : level);
+
+        var meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.textContent = '[' + (payload.at || '') + '] ' + String(level).toUpperCase();
+
+        var body = document.createElement('div');
+        body.className = 'body';
+        body.textContent = payload.message || '';
+
+        wrap.appendChild(meta);
+        wrap.appendChild(body);
+
+        if (payload.stack) {
+          var st = document.createElement('div');
+          st.className = 'stack';
+          st.textContent = payload.stack;
+          wrap.appendChild(st);
+        }
+        if (payload.href) {
+          var h = document.createElement('div');
+          h.className = 'href';
+          h.textContent = payload.href;
+          wrap.appendChild(h);
+        }
+
+        logEl.appendChild(wrap);
+        count += 1;
+        while (logEl.children.length > MAX) {
+          logEl.removeChild(logEl.firstChild);
+          count -= 1;
+        }
+        statsEl.textContent = count + ' lines (max ' + MAX + ')';
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function clearLog() {
+        logEl.innerHTML = '';
+        count = 0;
+        statsEl.textContent = '0 lines';
+      }
+
+      window.addEventListener('message', function (e) {
+        if (e.origin !== window.location.origin) return;
+        if (!e.data || e.data.source !== 'flutter-console-relay') return;
+        if (e.data.action === 'clear') {
+          clearLog();
+          return;
+        }
+        render(e.data);
+      });
+
+      document.getElementById('btn-clear').addEventListener('click', clearLog);
+      document.getElementById('btn-copy').addEventListener('click', function () {
+        var t = logEl.innerText || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(t).catch(function () {});
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
