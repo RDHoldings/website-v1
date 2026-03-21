@@ -174942,7 +174942,7 @@ s=p}for(;;)switch(s){case 0:if(a1.length===0){q=A.a([],t.OF)
 s=1
 break}p=4
 m=new A.x(a1,new A.aGm(),A.K(a1).i("x<1,f>")).aM(0,"|")
-l=A.cV("https://api.open-elevation.com/api/v1/lookup",0,null).i_(0,A.a_(["locations",m],t.N,t.z))
+l=A.cV("https://maps.googleapis.com/maps/api/elevation/json",0,null).i_(0,A.a_(["locations",m,"key",A.azR()],t.N,t.z))
 s=7
 return A.c(n.a.uz("GET",l,null).cU(0,B.cl),$async$Kl)
 case 7:k=a3
