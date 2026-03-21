@@ -310,7 +310,8 @@
         if (mapsDiagDone) return;
         mapsDiagDone = true;
         if (typeof google !== 'undefined' && google.maps) {
-          console.info(
+          /* debug: avoids Sentry/console pipelines treating routine success as INFO events */
+          console.debug(
             '[Maps] google.maps is available. If the map is still blank, check Flutter google_maps_flutter_web config. HERE / other geocoding providers are configured in the Flutter app, not this HTML shell.',
           );
         } else {
