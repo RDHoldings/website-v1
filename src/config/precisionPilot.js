@@ -28,9 +28,11 @@ export const precisionPilotWebApp = {
   testEmbedUrl: '/precision-pilot-test/app/',
   /**
    * Query string appended to **test** embed only (no leading `?` required).
-   * Example: `debug=1&env=staging` — use for feature flags your app reads from the URL.
+   * Leave empty for the public site so the embedded build uses its default Firebase/env
+   * (forcing e.g. `env=staging` here can break the shell if staging backends are slow or unavailable).
+   * For local flags, temporarily set e.g. `debug=1` or `debug=1&env=staging` while testing.
    */
-  testUrlExtraParams: 'debug=1&env=staging',
+  testUrlExtraParams: '',
 }
 
 /**
