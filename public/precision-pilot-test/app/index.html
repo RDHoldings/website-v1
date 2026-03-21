@@ -17,12 +17,18 @@
   <base href="/precision-pilot-test/app/">
 
   <meta charset="UTF-8">
-  <!-- Forward console + errors to parent (test shell) when embedded; must run before Flutter/Maps. -->
+  <!--
+    Test shell bridge: forward console + client errors to parent iframe.
+    Also: Maps/fetch diagnostics, optional UI stack traces (?debugTrace=1).
+    Server-side / Firebase logs are not visible here — only this browser context.
+  -->
   <script>
   (function () {
     try {
       if (window.parent === window) return;
       var O = window.location.origin;
+      var debugTrace = /\bdebugTrace=1\b/.test(window.location.search || '');
+
       function stringify(a) {
         if (a instanceof Error) {
           return a.name + ': ' + a.message + (a.stack ? '\n' + a.stack : '');
@@ -36,12 +42,20 @@
         }
         return String(a);
       }
+
+      function collectStacks(args) {
+        var out = [];
+        for (var i = 0; i < args.length; i++) {
+          if (args[i] instanceof Error && args[i].stack) out.push(args[i].stack);
+        }
+        return out.length ? out.join('\n--- next Error ---\n') : '';
+      }
+
       function send(level, args) {
         var parts = [];
         for (var i = 0; i < args.length; i++) parts.push(stringify(args[i]));
         var msg = parts.join(' ');
-        var stack = '';
-        if (args[0] instanceof Error && args[0].stack) stack = args[0].stack;
+        var stack = collectStacks(args);
         window.parent.postMessage(
           {
             source: 'flutter-console',
@@ -54,6 +68,7 @@
           O,
         );
       }
+
       ['log', 'info', 'debug', 'warn', 'error'].forEach(function (level) {
         var orig = console[level];
         if (typeof orig !== 'function') return;
@@ -63,21 +78,96 @@
           return orig.apply(console, arguments);
         };
       });
+
       window.addEventListener(
         'error',
         function (ev) {
+          var err = ev.error;
+          var stack = err && err.stack ? err.stack : '';
           send('error', [
             '[window.error]',
             ev.message,
             (ev.filename || '') + ':' + (ev.lineno || 0) + ':' + (ev.colno || 0),
-            ev.error,
+            err || undefined,
           ]);
         },
         true,
       );
+
       window.addEventListener('unhandledrejection', function (ev) {
         send('error', ['[unhandledrejection]', ev.reason]);
       });
+
+      /* Failed / non-OK fetch — geocoding & API calls often surface here */
+      if (typeof window.fetch === 'function') {
+        var ofetch = window.fetch;
+        window.fetch = function (input, init) {
+          var url =
+            typeof input === 'string'
+              ? input
+              : input && input.url
+                ? input.url
+                : String(input);
+          return ofetch
+            .apply(this, arguments)
+            .then(function (r) {
+              if (!r.ok) {
+                console.error('[fetch]', r.status, r.statusText, url);
+              }
+              return r;
+            })
+            .catch(function (e) {
+              console.error('[fetch] failed', url, e);
+              throw e;
+            });
+        };
+      }
+
+      /* Maps: placeholder key (immediate); google.maps (after async script has time to load) */
+      function auditMapsPlaceholder() {
+        var scripts = document.querySelectorAll('script[src*="maps.googleapis.com"]');
+        for (var i = 0; i < scripts.length; i++) {
+          if (scripts[i].src.indexOf('YOUR_GOOGLE_MAPS_WEB_API_KEY') !== -1) {
+            console.error(
+              '[Maps] Deploy still has YOUR_GOOGLE_MAPS_WEB_API_KEY in index.html. Set GitHub Actions secret GOOGLE_MAPS_WEB_API_KEY and rebuild so inject-google-maps-key.mjs can replace it.',
+            );
+          }
+        }
+      }
+      var mapsDiagDone = false;
+      function auditMapsAfterDelay() {
+        if (mapsDiagDone) return;
+        mapsDiagDone = true;
+        if (typeof google !== 'undefined' && google.maps) {
+          console.info(
+            '[Maps] google.maps is available. If the map is still blank, check Flutter google_maps_flutter_web config. HERE / other geocoding providers are configured in the Flutter app, not this HTML shell.',
+          );
+        } else {
+          console.error(
+            '[Maps] google.maps not available after load. Common causes: (1) GOOGLE_MAPS_WEB_API_KEY not set at build, (2) Maps JavaScript API disabled in Google Cloud, (3) billing, (4) API key HTTP referrer restrictions blocking this origin. HERE and other fallbacks are implemented in the Flutter/Dart code — not in this static site.',
+          );
+        }
+      }
+      setTimeout(auditMapsPlaceholder, 0);
+      setTimeout(auditMapsAfterDelay, 9000);
+
+      /* Optional: stack for each pointer interaction (noisy; use ?debugTrace=1) */
+      if (debugTrace) {
+        console.warn(
+          '[debugTrace] UI pointer stacks enabled — add debugTrace=1 to the app URL (test shell iframe src).',
+        );
+        ['pointerdown', 'click'].forEach(function (type) {
+          document.addEventListener(
+            type,
+            function (ev) {
+              var t = ev.target && ev.target.tagName ? ev.target.tagName : '?';
+              var stack = new Error('[ui ' + type + '] ' + t).stack;
+              console.debug('[ui]', type, t, stack);
+            },
+            true,
+          );
+        });
+      }
     } catch (e) {}
   })();
   </script>
