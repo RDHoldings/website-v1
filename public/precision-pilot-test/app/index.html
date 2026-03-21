@@ -18,16 +18,20 @@
 
   <meta charset="UTF-8">
   <!--
-    Test shell bridge: forward console + client errors to parent iframe.
-    Also: Maps/fetch diagnostics, optional UI stack traces (?debugTrace=1).
-    Server-side / Firebase logs are not visible here — only this browser context.
+    Test shell bridge: verbose browser-side diagnostics (not full flutter run -v — that is Dart/VM).
+    Forwards: console.*, lifecycle, fetch/XHR, WebSocket, perf observers, Maps, errors.
+    Optional: ?debugVerbose=1 (noisy), ?debugTrace=1 (UI pointer stacks).
+    Server-side / Firebase logs only appear if the app logs them to console.
   -->
   <script>
   (function () {
     try {
       if (window.parent === window) return;
       var O = window.location.origin;
-      var debugTrace = /\bdebugTrace=1\b/.test(window.location.search || '');
+      var qs = window.location.search || '';
+      var debugTrace = /\bdebugTrace=1\b/.test(qs);
+      var debugVerbose = /\bdebugVerbose=1\b/.test(qs);
+      var seqCounter = 0;
 
       function stringify(a) {
         if (a instanceof Error) {
@@ -51,11 +55,30 @@
         return out.length ? out.join('\n--- next Error ---\n') : '';
       }
 
-      function send(level, args) {
+      /**
+       * @param {string} level
+       * @param {Array} args
+       * @param {{ category?: string, durationMs?: number, extra?: object }} meta
+       */
+      function send(level, args, meta) {
+        meta = meta || {};
         var parts = [];
         for (var i = 0; i < args.length; i++) parts.push(stringify(args[i]));
         var msg = parts.join(' ');
         var stack = collectStacks(args);
+        var cat = meta.category || 'console';
+        if (!meta.category || meta.category === 'console') {
+          if (msg.indexOf('[lifecycle]') === 0) cat = 'lifecycle';
+          else if (msg.indexOf('[Maps]') === 0) cat = 'maps';
+          else if (msg.indexOf('[fetch]') === 0) cat = 'fetch';
+          else if (msg.indexOf('[xhr]') === 0) cat = 'fetch';
+          else if (msg.indexOf('[websocket]') === 0) cat = 'network';
+          else if (msg.indexOf('[perf]') === 0) cat = 'perf';
+          else if (msg.indexOf('[ui]') === 0 || msg.indexOf('[debugTrace]') === 0) cat = 'ui';
+          else if (msg.indexOf('[unhandledrejection]') === 0 || msg.indexOf('[rejectionhandled]') === 0)
+            cat = 'promise';
+          else if (msg.indexOf('[window.error]') === 0) cat = 'runtime';
+        }
         window.parent.postMessage(
           {
             source: 'flutter-console',
@@ -64,17 +87,43 @@
             at: new Date().toISOString(),
             stack: stack || undefined,
             href: window.location.href,
+            seq: ++seqCounter,
+            category: cat,
+            durationMs: meta.durationMs,
+            extra: meta.extra,
           },
           O,
         );
       }
+
+      /* Boot: first line mirrors "verbose" startup context */
+      var tz = '';
+      try {
+        if (window.Intl && typeof Intl.DateTimeFormat === 'function') {
+          tz = new Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        }
+      } catch (eTz) {
+        /* ignore */
+      }
+      send(
+        'info',
+        [
+          '[lifecycle] embed bridge ready',
+          'ua=' + (navigator.userAgent || ''),
+          'vp=' + (typeof window.innerWidth === 'number' ? window.innerWidth + 'x' + window.innerHeight : '?'),
+          'dpr=' + (window.devicePixelRatio || 1),
+          'lang=' + (navigator.language || ''),
+          'tz=' + tz,
+        ],
+        { category: 'lifecycle', extra: { timeOrigin: performance.timeOrigin || 0 } },
+      );
 
       ['log', 'info', 'debug', 'warn', 'error'].forEach(function (level) {
         var orig = console[level];
         if (typeof orig !== 'function') return;
         console[level] = function () {
           var a = Array.prototype.slice.call(arguments);
-          send(level, a);
+          send(level, a, { category: 'console' });
           return orig.apply(console, arguments);
         };
       });
@@ -83,19 +132,44 @@
         'error',
         function (ev) {
           var err = ev.error;
-          var stack = err && err.stack ? err.stack : '';
-          send('error', [
-            '[window.error]',
-            ev.message,
-            (ev.filename || '') + ':' + (ev.lineno || 0) + ':' + (ev.colno || 0),
-            err || undefined,
-          ]);
+          send(
+            'error',
+            [
+              '[window.error]',
+              ev.message,
+              (ev.filename || '') + ':' + (ev.lineno || 0) + ':' + (ev.colno || 0),
+              err || undefined,
+            ],
+            { category: 'runtime', extra: { type: ev.type } },
+          );
         },
         true,
       );
 
       window.addEventListener('unhandledrejection', function (ev) {
-        send('error', ['[unhandledrejection]', ev.reason]);
+        send('error', ['[unhandledrejection]', ev.reason], { category: 'promise' });
+      });
+
+      window.addEventListener('rejectionhandled', function (ev) {
+        console.warn('[rejectionhandled]', ev.reason);
+      });
+
+      document.addEventListener('visibilitychange', function () {
+        console.info('[lifecycle] visibility', document.visibilityState);
+      });
+
+      window.addEventListener('pageshow', function (ev) {
+        if (debugVerbose) {
+          console.debug('[lifecycle] pageshow', { persisted: !!ev.persisted });
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', function () {
+        console.info('[lifecycle] DOMContentLoaded', Math.round(performance.now()) + 'ms since timeOrigin');
+      });
+
+      window.addEventListener('load', function () {
+        console.info('[lifecycle] window load', Math.round(performance.now()) + 'ms since timeOrigin');
       });
 
       /* Failed / non-OK fetch — geocoding & API calls often surface here */
@@ -108,19 +182,125 @@
               : input && input.url
                 ? input.url
                 : String(input);
+          var method =
+            init && init.method
+              ? init.method
+              : typeof input === 'object' && input && input.method
+                ? input.method
+                : 'GET';
+          var t0 = performance.now();
+          if (debugVerbose) {
+            console.debug('[fetch] →', method, url);
+          }
           return ofetch
             .apply(this, arguments)
             .then(function (r) {
+              var ms = Math.round(performance.now() - t0);
               if (!r.ok) {
-                console.error('[fetch]', r.status, r.statusText, url);
+                console.error('[fetch]', r.status, r.statusText, method, url, ms + 'ms');
+              } else if (debugVerbose) {
+                console.debug('[fetch] ←', r.status, method, url, ms + 'ms');
               }
               return r;
             })
             .catch(function (e) {
-              console.error('[fetch] failed', url, e);
+              var ms = Math.round(performance.now() - t0);
+              console.error('[fetch] failed', method, url, ms + 'ms', e);
               throw e;
             });
         };
+      }
+
+      /* XMLHttpRequest — many Flutter web plugins still use XHR */
+      if (typeof XMLHttpRequest !== 'undefined') {
+        var XO = XMLHttpRequest.prototype.open;
+        var XS = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.open = function (method, url) {
+          this._ppMethod = method;
+          this._ppUrl = typeof url === 'string' ? url : String(url);
+          return XO.apply(this, arguments);
+        };
+        XMLHttpRequest.prototype.send = function () {
+          var self = this;
+          var t0 = performance.now();
+          if (debugVerbose) {
+            console.debug('[xhr] →', self._ppMethod || '?', self._ppUrl || '?');
+          }
+          function done() {
+            var ms = Math.round(performance.now() - t0);
+            var st = self.status || 0;
+            if (st >= 400) {
+              console.error('[xhr]', st, self._ppMethod, self._ppUrl, ms + 'ms');
+            } else if (debugVerbose) {
+              console.debug('[xhr] ←', st, self._ppMethod, self._ppUrl, ms + 'ms');
+            }
+          }
+          self.addEventListener('loadend', done);
+          return XS.apply(this, arguments);
+        };
+      }
+
+      /* WebSocket — only with debugVerbose (patching addEventListener can break removeEventListener) */
+      if (
+        debugVerbose &&
+        typeof window.WebSocket !== 'undefined' &&
+        WebSocket.prototype.addEventListener
+      ) {
+        (function () {
+          var origAEL = WebSocket.prototype.addEventListener;
+          WebSocket.prototype.addEventListener = function (type, listener, options) {
+            var self = this;
+            if (typeof listener !== 'function') {
+              return origAEL.call(this, type, listener, options);
+            }
+            return origAEL.call(this, type, function wrapped(ev) {
+              try {
+                var u = self.url || '';
+                if (type === 'open') console.info('[websocket] open', u);
+                if (type === 'close')
+                  console.info('[websocket] close', u, 'code=' + ev.code, 'clean=' + ev.wasClean);
+                if (type === 'error') console.error('[websocket] error', u);
+              } catch (eWs) {
+                /* ignore */
+              }
+              return listener.apply(this, arguments);
+            }, options);
+          };
+        })();
+      }
+
+      /* Long tasks & slow resources (Chrome) */
+      if (typeof PerformanceObserver !== 'undefined') {
+        try {
+          var poLt = new PerformanceObserver(function (list) {
+            var entries = list.getEntries();
+            for (var i = 0; i < entries.length; i++) {
+              var e = entries[i];
+              if (e.duration >= 50) {
+                console.warn('[perf] longtask', Math.round(e.duration) + 'ms', e.name || '');
+              }
+            }
+          });
+          poLt.observe({ type: 'longtask', buffered: true });
+        } catch (e1) {
+          /* longtask not supported */
+        }
+        if (debugVerbose) {
+          try {
+            var poRes = new PerformanceObserver(function (list) {
+              var entries = list.getEntries();
+              for (var i = 0; i < entries.length; i++) {
+                var e = entries[i];
+                if (e.duration >= 1000) {
+                  console.debug('[perf][resource slow]', e.name, Math.round(e.duration) + 'ms');
+                }
+              }
+            });
+            poRes.observe({ type: 'resource', buffered: true });
+          } catch (e2) {
+            /* ignore */
+          }
+        }
       }
 
       /* Maps: placeholder key (immediate); google.maps (after async script has time to load) */
@@ -167,6 +347,12 @@
             true,
           );
         });
+      }
+
+      if (debugVerbose) {
+        console.warn(
+          '[debugVerbose] Extra network + resource logging enabled — add debugVerbose=1 to the app URL.',
+        );
       }
     } catch (e) {}
   })();

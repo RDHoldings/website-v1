@@ -114,7 +114,7 @@ npm run preview
 
 ## Project structure
 
-```
+```text
 ├── .github/workflows/           # CI — deploy-github-pages.yml → GitHub Pages
 ├── public/                      # Static files (copied to dist root as-is)
 │   ├── CNAME.example            # Copy to CNAME with your hostname for custom domain
@@ -174,15 +174,17 @@ Set `enabled: true` when a build or URL is live. Paths under `/downloads/...` ma
 | Path | Purpose |
 |------|---------|
 | **`/precision-pilot`** | Production shell: full-viewport **iframe** loading **`productionEmbedUrl`** (default **`/precision-pilot/app/`** — Flutter web build with **`base href /precision-pilot/app/`**). |
-| **`/precision-pilot-test`** | Pre-release shell: **`testEmbedUrl`** (default **`/precision-pilot-test/app/`**) + **`testUrlExtraParams`**. Test banner, **noindex** on the marketing shell + test embed `index.html`, debug line for resolved iframe `src`. **Two panes:** embedded Flutter app + a second iframe (**`/precision-pilot-test/console-panel.html`**) showing **`console.*`**, **`window.onerror`**, and **`unhandledrejection`** forwarded from the app via **`postMessage`** (see early script in **`public/precision-pilot-test/app/index.html`**). |
+| **`/precision-pilot-test`** | Pre-release shell: **`testEmbedUrl`** (default **`/precision-pilot-test/app/`**) + **`testUrlExtraParams`**. Test banner, **noindex** on the marketing shell + test embed `index.html`, debug line for resolved iframe `src`. **Two panes:** embedded Flutter app + **`console-panel.html`** — a rich forwarded log (filters, search, export, seq IDs, categories) wired via **`postMessage`** from the early script in **`public/precision-pilot-test/app/index.html`**. |
 
 If embed URLs are cleared (`''`), both routes show setup copy and the **download** cards instead of an iframe. Point your web app (Vercel, Cloudflare, etc.) at these paths for deep links, or set embed URLs to load that app inside the iframe.
 
 **Google Maps (Flutter web):** `public/precision-pilot*/app/index.html` loads the Maps JS API with placeholder **`YOUR_GOOGLE_MAPS_WEB_API_KEY`**. At **`npm run build`**, `scripts/inject-google-maps-key.mjs` replaces it when **`GOOGLE_MAPS_WEB_API_KEY`** is set (local env or GitHub Actions secret **`GOOGLE_MAPS_WEB_API_KEY`** — already wired in **`.github/workflows/deploy-github-pages.yml`**). Restrict the key by HTTP referrer to your domain in Google Cloud Console.
 
-**Test shell (`/precision-pilot-test`) diagnostics:** The early script in **`public/precision-pilot-test/app/index.html`** forwards **`console.*`**, **`window.onerror`**, **`unhandledrejection`**, **failed `fetch`** (non-OK status or network error), and **combined stack traces** from multiple `Error` arguments to the right-hand console panel. It logs explicit **`[Maps]`** messages if the build still contains the placeholder key or if **`google.maps`** never loads. **HERE** and other non-Google providers are configured in the **Flutter** project — this static site only injects the Google Maps JS script. **Backend / Cloud Functions / Firestore server logs do not appear** in the browser console; use Firebase Console or your API logs for server-side issues.
+**Test shell (`/precision-pilot-test`) diagnostics:** The early script in **`public/precision-pilot-test/app/index.html`** forwards **`console.*`** (with **seq** IDs and inferred **categories**), **`window.onerror`**, **`unhandledrejection`**, **`rejectionhandled`** (via `console.warn`), **lifecycle** (bridge ready, `DOMContentLoaded`, `load`, visibility), **`fetch`** + **XHR** (status / timing; failures always logged), **WebSocket** open/close/error (only when **`debugVerbose=1`** — optional `addEventListener` patch), **long tasks** (PerformanceObserver, ≥50ms), **slow resources** when **`debugVerbose=1`**, **failed `fetch`**, and **combined stack traces** from multiple `Error` arguments. It logs explicit **`[Maps]`** messages if the build still contains the placeholder key or if **`google.maps`** never loads. **HERE** and other non-Google providers are configured in the **Flutter** project — this static site only injects the Google Maps JS script. **Backend / Cloud Functions / Firestore server logs do not appear** in the browser unless the Flutter app prints them. **`flutter run -v`** streams **Dart/VM/engine** logs — those are **not** available in a static web shell unless you forward them from Dart (e.g. `dart:developer` / custom logging to `console`).
 
-**Verbose UI stacks (optional):** Append **`debugTrace=1`** to the **embedded app** URL (e.g. set **`testUrlExtraParams`** to **`debugTrace=1`** in `precisionPilotWebApp`, or add the query param when opening the app iframe URL) to log a stack trace on each pointer/click (very noisy).
+**Console panel (`console-panel.html`):** Level + category filters, text search (optional regex), pause autoscroll + **Latest ↓**, copy visible lines, export full buffer as `.txt`, font size, keyboard shortcuts (`/` focus search, `Esc` clear search, `Ctrl+L` clear log).
+
+**Optional URL flags on the embedded app** (e.g. **`testUrlExtraParams`** in `precisionPilotWebApp`): **`debugVerbose=1`** — extra successful fetch/XHR timing and slow resource hints (noisy). **`debugTrace=1`** — stack on each pointer/click (very noisy).
 
 **Flutter `assets/.env`:** The bundled app expects **`public/precision-pilot*/app/assets/.env`** (tracked placeholder, comments only — see **`.gitignore`** exceptions). Replace with real values only via your Flutter CI if needed; do not commit secrets.
 

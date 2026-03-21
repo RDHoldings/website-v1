@@ -11,55 +11,324 @@
       font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       display: flex; flex-direction: column; overflow: hidden;
     }
-    #toolbar {
+    #toolbar, #toolbar2 {
       display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
       padding: 6px 10px; border-bottom: 1px solid #27272a; background: #0a0a0a; flex-shrink: 0;
     }
-    #toolbar button {
+    #toolbar2 { padding-top: 0; border-bottom: 1px solid #1c1c1e; }
+    #toolbar label, #toolbar2 label { color: #a1a1aa; font-size: 10px; display: flex; align-items: center; gap: 4px; }
+    #toolbar button, #toolbar2 button {
       font: inherit; cursor: pointer; padding: 4px 10px; border-radius: 4px;
       border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7;
     }
-    #toolbar button:hover { background: #27272a; }
-    #stats { color: #71717a; font-size: 10px; margin-left: auto; }
+    #toolbar button:hover, #toolbar2 button:hover { background: #27272a; }
+    #toolbar button.primary { border-color: #ca8a04; background: #422006; color: #fef3c7; }
+    #toolbar button.primary:hover { background: #713f12; }
+    #toolbar input[type="search"], #toolbar2 input[type="search"], #toolbar2 select {
+      font: inherit; padding: 4px 8px; border-radius: 4px; border: 1px solid #3f3f46;
+      background: #09090b; color: #e4e4e7; min-width: 0;
+    }
+    #search { flex: 1 1 140px; max-width: 100%; }
+    #stats { color: #71717a; font-size: 10px; margin-left: auto; text-align: right; }
+    #hint { width: 100%; font-size: 9px; color: #52525b; line-height: 1.35; }
     #log {
       flex: 1; min-height: 0;
       padding: 8px 10px 16px; white-space: pre-wrap; word-break: break-word;
       overflow-y: auto;
     }
-    .entry { border-left: 3px solid #3f3f46; padding: 4px 0 6px 10px; margin: 0 0 6px; }
+    .entry {
+      border-left: 3px solid #3f3f46; padding: 4px 0 6px 10px; margin: 0 0 6px;
+      border-radius: 0 4px 4px 0; background: rgba(24, 24, 27, 0.35);
+    }
+    .entry.hidden { display: none !important; }
     .entry.error { border-left-color: #dc2626; }
     .entry.warn { border-left-color: #ca8a04; }
     .entry.info { border-left-color: #2563eb; }
     .entry.debug { border-left-color: #6b7280; }
-    .meta { color: #71717a; font-size: 10px; margin-bottom: 4px; }
+    .entry.log { border-left-color: #52525b; }
+    .meta {
+      color: #71717a; font-size: 10px; margin-bottom: 4px;
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline;
+    }
+    .seq { color: #52525b; font-variant-numeric: tabular-nums; }
+    .badge {
+      display: inline-block; padding: 0 5px; border-radius: 3px; font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .badge.cat-console { background: #27272a; color: #a1a1aa; }
+    .badge.cat-lifecycle { background: #14532d; color: #bbf7d0; }
+    .badge.cat-fetch, .badge.cat-network { background: #1e3a5f; color: #bfdbfe; }
+    .badge.cat-promise, .badge.cat-runtime { background: #7f1d1d; color: #fecaca; }
+    .badge.cat-perf { background: #713f12; color: #fef3c7; }
+    .badge.cat-maps { background: #4c1d95; color: #e9d5ff; }
+    .badge.cat-ui { background: #164e63; color: #cffafe; }
+    .badge.cat-default { background: #27272a; color: #d4d4d8; }
     .body { color: #d4d4d4; }
+    .dur { color: #a78bfa; font-size: 10px; }
+    .extra {
+      margin-top: 6px; padding: 6px 8px; border-radius: 4px; background: #0c0c0e;
+      border: 1px solid #27272a; color: #a1a1aa; font-size: 10px; white-space: pre-wrap; word-break: break-word;
+    }
     .stack { margin-top: 6px; color: #a1a1aa; font-size: 10px; white-space: pre-wrap; }
+    details.stackbox { margin-top: 6px; }
+    details.stackbox > summary {
+      cursor: pointer; color: #71717a; font-size: 10px; user-select: none;
+    }
     .href { color: #52525b; font-size: 10px; margin-top: 4px; word-break: break-all; }
+    #empty {
+      flex: 0 0 auto;
+      padding: 24px 12px; text-align: center; color: #52525b; font-size: 11px;
+      border: 1px dashed #27272a; border-radius: 6px; margin: 8px 0;
+    }
   </style>
 </head>
 <body>
   <div id="toolbar">
-    <span style="color:#a1a1aa;font-size:11px;">Forwarded from embedded app</span>
-    <button type="button" id="btn-clear">Clear</button>
-    <button type="button" id="btn-copy">Copy all</button>
+    <span style="color:#a1a1aa;font-size:11px;">Forwarded · embedded app</span>
+    <button type="button" id="btn-clear" title="Clear log (does not affect the app)">Clear</button>
+    <button type="button" id="btn-export" title="Download full buffer as .txt">Export</button>
+    <button type="button" id="btn-copy" title="Copy visible lines to clipboard">Copy visible</button>
+    <button type="button" id="btn-jump" class="primary" title="Scroll to bottom" hidden>Latest ↓</button>
+    <label title="Pause automatic scroll when new lines arrive">
+      <input type="checkbox" id="pause-scroll"> Pause scroll
+    </label>
     <span id="stats"></span>
   </div>
-  <div id="log" role="log" aria-live="polite" aria-relevant="additions"></div>
+  <div id="toolbar2">
+    <label>Level
+      <select id="filter-level" aria-label="Filter by log level">
+        <option value="all">All</option>
+        <option value="error">Error</option>
+        <option value="warn">Warn</option>
+        <option value="info">Info</option>
+        <option value="log">Log</option>
+        <option value="debug">Debug</option>
+      </select>
+    </label>
+    <label>Category
+      <select id="filter-cat" aria-label="Filter by category">
+        <option value="all">All</option>
+        <option value="console">Console</option>
+        <option value="lifecycle">Lifecycle</option>
+        <option value="fetch">Network (fetch / XHR)</option>
+        <option value="network">WebSocket</option>
+        <option value="perf">Perf</option>
+        <option value="maps">Maps</option>
+        <option value="promise">Promise</option>
+        <option value="runtime">Runtime</option>
+        <option value="ui">UI trace</option>
+      </select>
+    </label>
+    <input type="search" id="search" placeholder="Search message / stack / URL…" autocomplete="off" aria-label="Search log">
+    <label title="Interpret search as regular expression">
+      <input type="checkbox" id="search-regex"> Regex
+    </label>
+    <button type="button" id="btn-font-min" title="Smaller text">A−</button>
+    <button type="button" id="btn-font-reset" title="Reset text size">A</button>
+    <button type="button" id="btn-font-plus" title="Larger text">A+</button>
+  </div>
+  <p id="hint">
+    Real-time log from the test shell bridge. Use filters + search to isolate failures.
+    Shortcuts: <kbd>/</kbd> search · <kbd>Esc</kbd> clear search · <kbd>Ctrl+L</kbd> clear log.
+    Dart/VM/engine logs from <code>flutter run -v</code> are not in the browser unless the app prints them.
+  </p>
+  <div id="log" role="log" aria-live="polite" aria-relevant="additions">
+    <div id="empty">No entries yet — load the app or trigger actions in the left pane.</div>
+  </div>
   <script>
     (function () {
-      var MAX = 3000;
+      var MAX = 5000;
       var logEl = document.getElementById('log');
       var statsEl = document.getElementById('stats');
+      var emptyEl = document.getElementById('empty');
+      var hintEl = document.getElementById('hint');
       var count = 0;
+      var errCount = 0;
+      var warnCount = 0;
+      var pauseScroll = false;
+      var baseFontPx = 11;
+
+      var filterLevel = document.getElementById('filter-level');
+      var filterCat = document.getElementById('filter-cat');
+      var searchEl = document.getElementById('search');
+      var searchRegex = document.getElementById('search-regex');
+      var btnJump = document.getElementById('btn-jump');
+      var pauseChk = document.getElementById('pause-scroll');
+
+      function catClass(cat) {
+        var c = (cat || 'console').toLowerCase().replace(/[^a-z0-9-]/g, '');
+        if (c.indexOf('fetch') !== -1 || c === 'network') return 'cat-fetch';
+        if (c === 'lifecycle') return 'cat-lifecycle';
+        if (c === 'perf') return 'cat-perf';
+        if (c === 'maps') return 'cat-maps';
+        if (c === 'promise' || c === 'runtime') return 'cat-promise';
+        if (c === 'ui' || c === 'console') return c === 'ui' ? 'cat-ui' : 'cat-console';
+        return 'cat-default';
+      }
+
+      function normalizeLevel(level) {
+        var l = (level || 'log').toLowerCase();
+        if (l === 'warning') return 'warn';
+        return l;
+      }
+
+      function matchesCategory(filterVal, payloadCat) {
+        if (filterVal === 'all') return true;
+        var c = (payloadCat || 'console').toLowerCase();
+        if (filterVal === 'fetch') return c === 'fetch' || c.indexOf('xhr') !== -1;
+        if (filterVal === 'network') return c === 'network';
+        return c.indexOf(filterVal) !== -1 || c === filterVal;
+      }
+
+      function matchesSearch(text) {
+        var q = (searchEl.value || '').trim();
+        if (!q) return true;
+        try {
+          if (searchRegex.checked) {
+            var re = new RegExp(q, 'i');
+            return re.test(text);
+          }
+          return text.toLowerCase().indexOf(q.toLowerCase()) !== -1;
+        } catch (e) {
+          return text.toLowerCase().indexOf(q.toLowerCase()) !== -1;
+        }
+      }
+
+      function entryVisible(wrap, payload) {
+        var lvl = normalizeLevel(payload.level);
+        var fl = filterLevel.value;
+        if (fl !== 'all' && lvl !== fl) return false;
+        if (!matchesCategory(filterCat.value, payload.category)) return false;
+        var blob =
+          (payload.message || '') +
+          '\n' +
+          (payload.stack || '') +
+          '\n' +
+          (payload.href || '') +
+          '\n' +
+          (payload.extra ? JSON.stringify(payload.extra) : '') +
+          '\n' +
+          (payload.seq != null ? String(payload.seq) : '');
+        if (!matchesSearch(blob)) return false;
+        return true;
+      }
+
+      function applyFilters() {
+        var children = logEl.children;
+        var visible = 0;
+        for (var i = 0; i < children.length; i++) {
+          var w = children[i];
+          if (w.id === 'empty') continue;
+          var payloadStr = w.getAttribute('data-payload');
+          if (!payloadStr) continue;
+          var ok = true;
+          try {
+            ok = entryVisible(w, JSON.parse(payloadStr || '{}'));
+          } catch (e) {
+            ok = true;
+          }
+          if (ok) {
+            w.classList.remove('hidden');
+            visible++;
+          } else {
+            w.classList.add('hidden');
+          }
+        }
+        if (count === 0) {
+          emptyEl.hidden = false;
+          emptyEl.style.display = '';
+          emptyEl.textContent = 'No entries yet — load the app or trigger actions in the left pane.';
+        } else if (visible === 0) {
+          emptyEl.hidden = false;
+          emptyEl.style.display = '';
+          emptyEl.textContent = 'No entries match your filters or search.';
+        } else {
+          emptyEl.hidden = true;
+          emptyEl.style.display = 'none';
+        }
+        updateStatsVisible(visible);
+        updateJumpButton();
+      }
+
+      function scrollToBottomIfNeeded() {
+        if (pauseScroll) {
+          btnJump.hidden = false;
+          return;
+        }
+        btnJump.hidden = true;
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function updateJumpButton() {
+        if (!pauseScroll) {
+          btnJump.hidden = true;
+          return;
+        }
+        var nearBottom = logEl.scrollHeight - logEl.clientHeight - logEl.scrollTop < 80;
+        btnJump.hidden = nearBottom;
+      }
+
+      function updateStats() {
+        updateStatsVisible(null);
+      }
+
+      function updateStatsVisible(visible) {
+        var filtered =
+          (searchEl.value || '').trim() !== '' ||
+          filterLevel.value !== 'all' ||
+          filterCat.value !== 'all';
+        var visPart =
+          filtered && visible != null ? ' · ' + visible + '/' + count + ' visible' : '';
+        statsEl.textContent =
+          count +
+          ' lines (max ' +
+          MAX +
+          ')' +
+          visPart +
+          ' · errors ' +
+          errCount +
+          ' · warns ' +
+          warnCount;
+      }
 
       function render(payload) {
-        var level = (payload.level || 'log').toLowerCase();
+        var level = normalizeLevel(payload.level);
+        if (level === 'error') errCount += 1;
+        if (level === 'warn') warnCount += 1;
+
         var wrap = document.createElement('div');
         wrap.className = 'entry ' + (level === 'warning' ? 'warn' : level);
+        wrap.setAttribute('data-payload', JSON.stringify(payload));
 
         var meta = document.createElement('div');
         meta.className = 'meta';
-        meta.textContent = '[' + (payload.at || '') + '] ' + String(level).toUpperCase();
+
+        var seqSpan = document.createElement('span');
+        seqSpan.className = 'seq';
+        seqSpan.textContent = '#' + (payload.seq != null ? payload.seq : '—');
+
+        var lvlSpan = document.createElement('span');
+        lvlSpan.textContent = String(level).toUpperCase();
+
+        var timeSpan = document.createElement('span');
+        timeSpan.textContent = payload.at || '';
+
+        meta.appendChild(seqSpan);
+        meta.appendChild(lvlSpan);
+        meta.appendChild(timeSpan);
+
+        var cat = (payload.category || 'console').toString();
+        var badge = document.createElement('span');
+        badge.className = 'badge ' + catClass(cat);
+        badge.textContent = cat;
+        meta.appendChild(badge);
+
+        if (payload.durationMs != null) {
+          var d = document.createElement('span');
+          d.className = 'dur';
+          d.textContent = payload.durationMs + 'ms';
+          meta.appendChild(d);
+        }
 
         var body = document.createElement('div');
         body.className = 'body';
@@ -68,11 +337,37 @@
         wrap.appendChild(meta);
         wrap.appendChild(body);
 
+        if (payload.extra && typeof payload.extra === 'object') {
+          var ex = document.createElement('div');
+          ex.className = 'extra';
+          try {
+            ex.textContent = JSON.stringify(payload.extra, null, 2);
+          } catch (e) {
+            ex.textContent = String(payload.extra);
+          }
+          wrap.appendChild(ex);
+        }
+
         if (payload.stack) {
-          var st = document.createElement('div');
-          st.className = 'stack';
-          st.textContent = payload.stack;
-          wrap.appendChild(st);
+          var longStack = (payload.stack || '').length > 1200;
+          if (longStack) {
+            var det = document.createElement('details');
+            det.className = 'stackbox';
+            det.open = false;
+            var sum = document.createElement('summary');
+            sum.textContent = 'Stack trace (expand)';
+            var st = document.createElement('div');
+            st.className = 'stack';
+            st.textContent = payload.stack;
+            det.appendChild(sum);
+            det.appendChild(st);
+            wrap.appendChild(det);
+          } else {
+            var st2 = document.createElement('div');
+            st2.className = 'stack';
+            st2.textContent = payload.stack;
+            wrap.appendChild(st2);
+          }
         }
         if (payload.href) {
           var h = document.createElement('div');
@@ -83,18 +378,79 @@
 
         logEl.appendChild(wrap);
         count += 1;
-        while (logEl.children.length > MAX) {
-          logEl.removeChild(logEl.firstChild);
-          count -= 1;
+        while (count > MAX) {
+          var oldest = logEl.querySelector('.entry');
+          if (oldest) {
+            logEl.removeChild(oldest);
+            count -= 1;
+          } else {
+            break;
+          }
         }
-        statsEl.textContent = count + ' lines (max ' + MAX + ')';
-        logEl.scrollTop = logEl.scrollHeight;
+
+        updateStats();
+
+        try {
+          if (!entryVisible(wrap, payload)) wrap.classList.add('hidden');
+        } catch (e) {}
+
+        scrollToBottomIfNeeded();
       }
 
       function clearLog() {
         logEl.innerHTML = '';
+        var empty = document.createElement('div');
+        empty.id = 'empty';
+        empty.textContent = 'No entries yet — load the app or trigger actions in the left pane.';
+        logEl.appendChild(empty);
+        emptyEl = empty;
         count = 0;
-        statsEl.textContent = '0 lines';
+        errCount = 0;
+        warnCount = 0;
+        updateStats();
+        applyFilters();
+      }
+
+      function exportLog() {
+        var lines = [];
+        var children = logEl.children;
+        for (var i = 0; i < children.length; i++) {
+          var w = children[i];
+          var raw = w.getAttribute('data-payload');
+          if (!raw) continue;
+          try {
+            var p = JSON.parse(raw);
+            lines.push('---');
+            lines.push('#' + (p.seq != null ? p.seq : '') + ' ' + (p.at || '') + ' ' + normalizeLevel(p.level).toUpperCase() + ' [' + (p.category || 'console') + ']');
+            lines.push(p.message || '');
+            if (p.stack) lines.push(p.stack);
+            if (p.href) lines.push('href: ' + p.href);
+            if (p.extra) lines.push('extra: ' + JSON.stringify(p.extra));
+          } catch (e) {
+            /* ignore */
+          }
+        }
+        var blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'precision-pilot-test-console-' + new Date().toISOString().replace(/[:.]/g, '-') + '.txt';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      function copyVisible() {
+        var parts = [];
+        var children = logEl.children;
+        for (var i = 0; i < children.length; i++) {
+          var w = children[i];
+          if (w.id === 'empty') continue;
+          if (w.classList.contains('hidden')) continue;
+          parts.push(w.innerText || '');
+        }
+        var t = parts.join('\n\n');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(t).catch(function () {});
+        }
       }
 
       window.addEventListener('message', function (e) {
@@ -105,15 +461,70 @@
           return;
         }
         render(e.data);
+        applyFilters();
       });
 
       document.getElementById('btn-clear').addEventListener('click', clearLog);
-      document.getElementById('btn-copy').addEventListener('click', function () {
-        var t = logEl.innerText || '';
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(t).catch(function () {});
+      document.getElementById('btn-export').addEventListener('click', exportLog);
+      document.getElementById('btn-copy').addEventListener('click', copyVisible);
+      btnJump.addEventListener('click', function () {
+        pauseScroll = false;
+        pauseChk.checked = false;
+        btnJump.hidden = true;
+        logEl.scrollTop = logEl.scrollHeight;
+      });
+
+      pauseChk.addEventListener('change', function () {
+        pauseScroll = pauseChk.checked;
+        if (!pauseScroll) scrollToBottomIfNeeded();
+        updateJumpButton();
+      });
+
+      logEl.addEventListener('scroll', updateJumpButton);
+
+      filterLevel.addEventListener('change', applyFilters);
+      filterCat.addEventListener('change', applyFilters);
+      searchEl.addEventListener('input', applyFilters);
+      searchRegex.addEventListener('change', applyFilters);
+
+      function setFont(px) {
+        baseFontPx = px;
+        logEl.style.fontSize = px + 'px';
+        hintEl.style.fontSize = Math.max(9, px - 2) + 'px';
+      }
+      document.getElementById('btn-font-min').addEventListener('click', function () {
+        setFont(Math.max(9, baseFontPx - 1));
+      });
+      document.getElementById('btn-font-plus').addEventListener('click', function () {
+        setFont(Math.min(16, baseFontPx + 1));
+      });
+      document.getElementById('btn-font-reset').addEventListener('click', function () {
+        setFont(11);
+      });
+
+      window.addEventListener('keydown', function (ev) {
+        if (ev.target && (ev.target.tagName === 'INPUT' || ev.target.tagName === 'SELECT')) {
+          if (ev.key === 'Escape') {
+            searchEl.value = '';
+            applyFilters();
+          }
+          return;
+        }
+        if (ev.key === '/' && !ev.ctrlKey && !ev.metaKey) {
+          ev.preventDefault();
+          searchEl.focus();
+        }
+        if (ev.key === 'Escape') {
+          searchEl.value = '';
+          applyFilters();
+        }
+        if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'l') {
+          ev.preventDefault();
+          clearLog();
         }
       });
+
+      updateStats();
     })();
   </script>
 </body>

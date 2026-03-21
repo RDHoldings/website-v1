@@ -20,6 +20,6 @@ Use a subfolder, e.g. build your staging app with **`base: '/precision-pilot-tes
 → **`https://your-domain/precision-pilot-test/app/`**  
 → set `testEmbedUrl: '/precision-pilot-test/app/'`.
 
-Optional URL flags stay in `testUrlExtraParams`. Commit and push to deploy.
+Optional URL flags stay in `testUrlExtraParams` (e.g. **`debugVerbose=1`** for noisier network/perf hints, **`debugTrace=1`** for UI pointer stacks — see root **README**). Commit and push to deploy.
 
 **Bundled placeholder:** `app/index.html` is a temporary in-iframe page for QA. Replace with your staging SPA when ready.

@@ -42,6 +42,10 @@ export function PrecisionPilotWebPage({ variant }) {
       at: payload.at,
       stack: payload.stack,
       href: payload.href,
+      seq: payload.seq,
+      category: payload.category,
+      durationMs: payload.durationMs,
+      extra: payload.extra,
     }
     if (!win) {
       pendingConsoleRef.current.push(relay)
@@ -214,9 +218,12 @@ export function PrecisionPilotWebPage({ variant }) {
           <span className="break-all text-[#d1d5db]">{iframeSrcAbsolute}</span>
           <span className="mt-1 block text-[#6b7280]">
             Two panes: embedded Flutter app (left) and forwarded <code className="text-[#a1a1aa]">console.*</code>,{' '}
-            <code className="text-[#a1a1aa]">window.onerror</code>, and{' '}
-            <code className="text-[#a1a1aa]">unhandledrejection</code> (right). Open DevTools on the left iframe for
-            full browser debugging.
+            lifecycle, fetch/XHR, WebSocket, perf hints, Maps checks, and{' '}
+            <code className="text-[#a1a1aa]">window.onerror</code> /{' '}
+            <code className="text-[#a1a1aa]">unhandledrejection</code> (right). Add{' '}
+            <code className="text-[#a1a1aa]">debugVerbose=1</code> or{' '}
+            <code className="text-[#a1a1aa]">debugTrace=1</code> to the app URL (see README). DevTools on the left
+            iframe still gives full Chrome debugging; this panel is a persistent, shareable log.
           </span>
         </div>
       ) : null}
