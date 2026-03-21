@@ -14,6 +14,28 @@ const embeds = ['precision-pilot-test', 'precision-pilot']
 
 let failed = false
 
+/** Never commit real Maps browser keys in tracked public/ HTML — use YOUR_GOOGLE_MAPS_WEB_API_KEY only. */
+const publicIndexFiles = [
+  join(root, 'public', 'precision-pilot', 'app', 'index.html'),
+  join(root, 'public', 'precision-pilot-test', 'app', 'index.html'),
+]
+
+for (const pubPath of publicIndexFiles) {
+  if (!existsSync(pubPath)) continue
+  const src = readFileSync(pubPath, 'utf8')
+  if (src.includes('AIzaSy')) {
+    console.error(
+      `verify-flutter-embed-assets: remove hardcoded Google Maps API key from ${pubPath} — use YOUR_GOOGLE_MAPS_WEB_API_KEY and GOOGLE_MAPS_WEB_API_KEY at build. Rotate the exposed key in Google Cloud Console.`,
+    )
+    failed = true
+  }
+}
+
+const ci =
+  process.env.CI === 'true' ||
+  process.env.GITHUB_ACTIONS === 'true' ||
+  process.env.GITHUB_ACTIONS === '1'
+
 for (const name of embeds) {
   const envPath = join(root, 'dist', name, 'app', 'assets', '.env')
   if (!existsSync(envPath)) {
@@ -46,6 +68,16 @@ for (const name of embeds) {
   if (mapsLine && !mapsLine.includes('async')) {
     console.error(
       `verify-flutter-embed-assets: Maps <script> should use the async attribute (${indexPath})`,
+    )
+    failed = true
+  }
+  if (
+    ci &&
+    mapsLine &&
+    mapsLine.includes('YOUR_GOOGLE_MAPS_WEB_API_KEY')
+  ) {
+    console.error(
+      `verify-flutter-embed-assets: Maps placeholder was not replaced in ${indexPath}. Ensure GOOGLE_MAPS_WEB_API_KEY is set for this build (GitHub Actions secret on CI).`,
     )
     failed = true
   }
