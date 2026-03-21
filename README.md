@@ -182,6 +182,8 @@ If embed URLs are cleared (`''`), both routes show setup copy and the **download
 
 **Flutter `assets/.env`:** The bundled app expects **`public/precision-pilot*/app/assets/.env`** (tracked placeholder, comments only — see **`.gitignore`** exceptions). Replace with real values only via your Flutter CI if needed; do not commit secrets.
 
+**After copying a new Flutter `build/web` into `public/precision-pilot*/app/`:** Do **not** ship the stock Flutter `index.html` (it omits viewport/SEO, may omit `assets/.env`, and must not hardcode a Maps API key). Restore the marketing wrappers: **`YOUR_GOOGLE_MAPS_WEB_API_KEY`** + **`<script async … loading=async>`**, correct **`<base href>`**, **viewport**, test-route **`noindex`**, branded **title/description**, and the **`assets/.env`** placeholder. Then run **`npm run build`** — **`verify-flutter-embed-assets.mjs`** fails the build if `.env` or Maps markup is wrong.
+
 **Static Precision Pilot builds in this repo (tracked + deployed):**
 
 | Path in repo | Served at | Notes |
