@@ -40,8 +40,20 @@ jobs:
         env:
           # Empty when unset — avoids odd string values in some runners; custom domain = leave unset (base '/')
           VITE_BASE_URL: ${{ vars.VITE_BASE_URL || '' }}
-          # Flutter web embeds: inject into public/.../app/index.html copies under dist/ (optional)
+          # Maps JS in Flutter embed index.html (see scripts/inject-google-maps-key.mjs)
           GOOGLE_MAPS_WEB_API_KEY: ${{ secrets.GOOGLE_MAPS_WEB_API_KEY }}
+          # Flutter web assets/.env — injected by scripts/inject-flutter-web-env.mjs (never commit values)
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          GOOGLE_CLOUD_VISION_API_KEY: ${{ secrets.GOOGLE_CLOUD_VISION_API_KEY }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          HERE_API_KEY: ${{ secrets.HERE_API_KEY }}
+          HERE_APP_ID: ${{ secrets.HERE_APP_ID }}
+          ACCUWEATHER_API_KEY: ${{ secrets.ACCUWEATHER_API_KEY }}
+          EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
+          APP_INVITE_BASE_URL: ${{ vars.APP_INVITE_BASE_URL || '' }}
+          # Set to 'true' only if you accept exposing Resend in the client (not recommended)
+          INJECT_FLUTTER_WEB_INCLUDE_RESEND: ${{ vars.INJECT_FLUTTER_WEB_INCLUDE_RESEND || '' }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
 
       # GitHub Pages serves 404.html for unknown paths — same as index.html so React Router works on refresh
       - name: SPA fallback for client-side routes

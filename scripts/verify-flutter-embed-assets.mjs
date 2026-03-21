@@ -31,6 +31,26 @@ for (const pubPath of publicIndexFiles) {
   }
 }
 
+/** Tracked Flutter assets/.env must stay empty of secrets — CI injects into dist/ only. */
+const publicEnvFiles = [
+  join(root, 'public', 'precision-pilot', 'app', 'assets', '.env'),
+  join(root, 'public', 'precision-pilot-test', 'app', 'assets', '.env'),
+]
+
+for (const envPath of publicEnvFiles) {
+  if (!existsSync(envPath)) continue
+  const src = readFileSync(envPath, 'utf8')
+  if (
+    src.includes('AIzaSy') ||
+    /\b(re_[a-zA-Z0-9_]+|zpka_[a-zA-Z0-9_]+)\b/.test(src)
+  ) {
+    console.error(
+      `verify-flutter-embed-assets: remove API keys from tracked ${envPath} — use GitHub Actions secrets and inject-flutter-web-env.mjs.`,
+    )
+    failed = true
+  }
+}
+
 const ci =
   process.env.CI === 'true' ||
   process.env.GITHUB_ACTIONS === 'true' ||

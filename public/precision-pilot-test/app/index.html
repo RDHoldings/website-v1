@@ -303,8 +303,7 @@
         }
       }
 
-      /* Maps: do not log on key= in the script URL — after CI inject the URL contains AIzaSy… (expected).
-         Sentry/tools often attach that URL to unrelated messages and it looks like a "leaked key" error. */
+      /* Maps: after CI inject, the script URL contains the real browser key (expected; restrict in GCP). */
       var mapsDiagDone = false;
       function auditMapsAfterDelay() {
         if (mapsDiagDone) return;
