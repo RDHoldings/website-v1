@@ -17,14 +17,13 @@
   <base href="/precision-pilot/app/">
 
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Precision Pilot — web client.">
+  <meta name="description" content="Precision Pilot — fleet and driver operations.">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="precision_freight">
+  <meta name="apple-mobile-web-app-title" content="Precision Pilot">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
@@ -33,10 +32,17 @@
   <title>Precision Pilot</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Google Maps JS API — key injected at build via GOOGLE_MAPS_WEB_API_KEY (never commit real keys). See README. -->
+  <!-- Google Maps JS API — YOUR_GOOGLE_MAPS_WEB_API_KEY replaced in website CI (inject-google-maps-key.mjs). -->
   <script async src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_WEB_API_KEY&amp;loading=async"></script>
 </head>
 <body>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js');
+      });
+    }
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
