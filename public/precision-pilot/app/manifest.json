@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Fleet and driver operations for Precision Freight.",
+    "description": "Fleet and driver operations for Precision Pilot.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
