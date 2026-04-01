@@ -32,6 +32,17 @@
   <title>Precision Pilot</title>
   <link rel="manifest" href="manifest.json">
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        regs.forEach(function (reg) {
+          var u = (reg.active && reg.active.scriptURL) || (reg.installing && reg.installing.scriptURL) || '';
+          if (u.indexOf('flutter_service_worker.js') !== -1) reg.unregister();
+        });
+      });
+    }
+  </script>
+
   <!-- Google Maps JS API — YOUR_GOOGLE_MAPS_WEB_API_KEY replaced in website CI (inject-google-maps-key.mjs). -->
   <script async src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_WEB_API_KEY&amp;loading=async"></script>
 </head>
