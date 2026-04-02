@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { BarChart3, Route, Shield, Wallet } from 'lucide-react'
 import { PrecisionPilotDevice } from '../PrecisionPilotDevice'
-import { PrecisionPilotAudience, PrecisionPilotDownloads } from '../PrecisionPilotDownloads'
+import { PrecisionPilotAudience } from '../PrecisionPilotDownloads'
 import { staggerContainer, fadeUp } from '../../utils/animations'
 
 const features = [
@@ -82,8 +82,6 @@ export function Tech() {
             <PrecisionPilotDevice />
           </div>
         </div>
-
-        <PrecisionPilotDownloads />
       </div>
     </section>
   )

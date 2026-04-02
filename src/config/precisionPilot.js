@@ -105,7 +105,7 @@ export const precisionPilot = {
       fileUrl: PRECISION_PILOT_APK.release,
       storeUrl: null,
       storeLabel: 'Google Play',
-      enabled: true,
+      enabled: false,
     },
     {
       id: 'ios',
@@ -124,7 +124,7 @@ export const precisionPilot = {
       fileUrl: '/precision-pilot',
       storeUrl: null,
       storeLabel: null,
-      enabled: true,
+      enabled: false,
     },
     {
       id: 'windows',
