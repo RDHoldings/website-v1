@@ -17,6 +17,16 @@ import { resolveSitePath } from '../utils/sitePaths'
 export const PRECISION_PILOT_DOWNLOAD_BASE = '/downloads/precision-pilot'
 
 /**
+ * Stable APK filenames (copy from Flutter `build/app/outputs/flutter-apk/` after build).
+ * - Debug → `precision-pilot-debug.apk` (sideload / internal testing; matches `/precision-pilot-test`)
+ * - Release → `precision-pilot-release.apk` (production; matches `/precision-pilot`)
+ */
+export const PRECISION_PILOT_APK = {
+  debug: `${PRECISION_PILOT_DOWNLOAD_BASE}/precision-pilot-debug.apk`,
+  release: `${PRECISION_PILOT_DOWNLOAD_BASE}/precision-pilot-release.apk`,
+}
+
+/**
  * Web client loaded inside `/precision-pilot` and `/precision-pilot-test`.
  * Defaults point at same-origin static files in `public/.../app/` (built to `dist/.../app/`).
  * Replace with a full SPA build or an external https:// URL when ready.
@@ -91,11 +101,11 @@ export const precisionPilot = {
     {
       id: 'android',
       name: 'Android',
-      description: 'Phones and tablets — Play Store or enterprise / MDM distribution.',
-      fileUrl: `${PRECISION_PILOT_DOWNLOAD_BASE}/precision-pilot-android.aab`,
+      description: 'Phones and tablets — download the release APK or install from Play Store when listed.',
+      fileUrl: PRECISION_PILOT_APK.release,
       storeUrl: null,
       storeLabel: 'Google Play',
-      enabled: false,
+      enabled: true,
     },
     {
       id: 'ios',

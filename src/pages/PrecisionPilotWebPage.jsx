@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { Download } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import logoShort from '../assets/RD Holdings Logo (Short Logo) 2.png'
 import { PrecisionPilotDownloads } from '../components/PrecisionPilotDownloads'
 import { Seo } from '../components/Seo'
 import { SEO_COPY, SITE_NAME } from '../config/site'
-import { getPrecisionPilotWebEmbedSrc } from '../config/precisionPilot'
+import { getPrecisionPilotWebEmbedSrc, PRECISION_PILOT_APK } from '../config/precisionPilot'
 import { resolveSitePath, toAbsoluteSiteUrl } from '../utils/sitePaths'
 
 /**
@@ -21,6 +22,11 @@ export function PrecisionPilotWebPage({ variant }) {
   const iframeSrcAbsolute = useMemo(
     () => (iframeSrc ? toAbsoluteSiteUrl(iframeSrc) : null),
     [iframeSrc],
+  )
+
+  const androidApkHref = useMemo(
+    () => resolveSitePath(isTest ? PRECISION_PILOT_APK.debug : PRECISION_PILOT_APK.release),
+    [isTest],
   )
 
   /** Static console sink (second iframe) — only on test route */
@@ -196,6 +202,18 @@ export function PrecisionPilotWebPage({ variant }) {
                 Open app in new tab
               </a>
             ) : null}
+            <a
+              href={androidApkHref}
+              download
+              className={`inline-flex items-center gap-1.5 font-medium transition-colors ${
+                isTest
+                  ? 'text-amber-200/95 hover:text-amber-100'
+                  : 'text-[#c49a3a] hover:text-[#f2d675]'
+              }`}
+            >
+              <Download className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
+              {isTest ? 'Download debug APK' : 'Download release APK'}
+            </a>
             {isTest ? (
               <button
                 type="button"

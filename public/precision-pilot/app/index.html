@@ -32,7 +32,8 @@
   <title>Precision Pilot</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Maps JavaScript API is injected at runtime from AppConfig (getClientApiConfig / dart-define). See lib/services/google_maps_js_loader_web.dart -->
+  <!-- Google Maps JS API — key injected at build via GOOGLE_MAPS_WEB_API_KEY (never commit real keys). See README. -->
+  <script async src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_WEB_API_KEY&amp;loading=async"></script>
 </head>
 <body>
   <script>
