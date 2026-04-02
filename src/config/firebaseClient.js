@@ -1,0 +1,63 @@
+/**
+ * Firebase JS SDK for the Vite/React shell (marketing site, Precision Pilot chrome).
+ * The embedded Flutter web app uses FlutterFire separately inside the iframe.
+ *
+ * Set VITE_FIREBASE_* in .env (see .env.example). Build-time only — never put secrets
+ * that must stay server-only here; the web API key is public by design (restrict in GCP).
+ */
+import { initializeApp, getApps } from 'firebase/app'
+import { getAnalytics, isSupported } from 'firebase/analytics'
+
+function readConfig() {
+  const apiKey = import.meta.env.VITE_FIREBASE_API_KEY
+  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID
+  if (!apiKey?.trim() || !projectId?.trim()) return null
+  return {
+    apiKey: apiKey.trim(),
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? `${projectId.trim()}.firebaseapp.com`,
+    projectId: projectId.trim(),
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? `${projectId.trim()}.firebasestorage.app`,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
+    appId: import.meta.env.VITE_FIREBASE_APP_ID ?? '',
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  }
+}
+
+let appInstance
+let analyticsInstance
+
+export function getFirebaseApp() {
+  if (typeof window === 'undefined') return null
+  if (appInstance) return appInstance
+  const firebaseConfig = readConfig()
+  if (!firebaseConfig?.appId) {
+    if (import.meta.env.DEV) {
+      console.info(
+        'Firebase (shell): VITE_FIREBASE_* not set — skip init. Copy .env.example to .env and fill values.',
+      )
+    }
+    return null
+  }
+  appInstance = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
+  return appInstance
+}
+
+/** Resolves after Analytics is ready or unsupported (null). */
+export async function getFirebaseAnalytics() {
+  if (analyticsInstance !== undefined) return analyticsInstance
+  const app = getFirebaseApp()
+  if (!app) {
+    analyticsInstance = null
+    return null
+  }
+  const supported = await isSupported()
+  if (!supported) {
+    analyticsInstance = null
+    return null
+  }
+  analyticsInstance = getAnalytics(app)
+  return analyticsInstance
+}
+
+void getFirebaseApp()
+void getFirebaseAnalytics()

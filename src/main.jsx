@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { BrowserRouter } from 'react-router-dom'
 import './styles/globals.css'
+import './config/firebaseClient.js'
 import App from './App.jsx'
 
 const routerBasename = (() => {
