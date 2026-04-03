@@ -15,12 +15,23 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  let url;
+  try {
+    url = new URL(event.request.url);
+  } catch (_) {
+    return;
+  }
+  // Only handle same-origin GETs. Cross-origin (gstatic, Google APIs, tiles)
+  // must use the default fetch path so auth and third-party scripts are not
+  // routed through this cache strategy.
+  if (url.origin !== self.location.origin) return;
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((response) => {
         const copy = response.clone();
-        if (response.ok && event.request.url.startsWith(self.location.origin)) {
+        if (response.ok) {
           caches.open(CACHE).then((cache) => cache.put(event.request, copy));
         }
         return response;
