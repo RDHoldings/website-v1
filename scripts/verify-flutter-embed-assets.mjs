@@ -1,7 +1,15 @@
 /**
  * After Vite build + inject-google-maps-key, ensure Flutter web embeds under dist/
  * include the tracked `assets/.env` placeholder (avoids Flutter 404) and recommended
- * Google Maps loading (`async` + `loading=async`).
+ * Google Maps loading.
+ *
+ * Production Flutter (`precision-pilot/app`) may load the Maps JS API at runtime from
+ * Dart (see precision-freight `web/index.html` comment + `google_maps_js_loader_web.dart`).
+ * In that case there is no static `<script src="maps.googleapis.com/...">` in index.html;
+ * we accept a stable HTML marker instead.
+ *
+ * Test / shell HTML (`precision-pilot-test`) may still use a static script + placeholder
+ * replaced by inject-google-maps-key.mjs — same checks as before.
  */
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -9,6 +17,10 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const root = join(__dirname, '..')
+
+/** Substring from Flutter `web/index.html` when Maps is injected at runtime (no static tag). */
+const RUNTIME_MAPS_MARKER =
+  'Maps JavaScript API is injected at runtime from AppConfig'
 
 const embeds = ['precision-pilot-test', 'precision-pilot']
 
@@ -56,6 +68,14 @@ const ci =
   process.env.GITHUB_ACTIONS === 'true' ||
   process.env.GITHUB_ACTIONS === '1'
 
+/**
+ * @param {string} html
+ * @returns {boolean}
+ */
+function usesRuntimeMapsInjection(html) {
+  return html.includes(RUNTIME_MAPS_MARKER)
+}
+
 for (const name of embeds) {
   const envPath = join(root, 'dist', name, 'app', 'assets', '.env')
   if (!existsSync(envPath)) {
@@ -72,6 +92,17 @@ for (const name of embeds) {
     continue
   }
   const html = readFileSync(indexPath, 'utf8')
+
+  if (usesRuntimeMapsInjection(html)) {
+    if (!html.includes('flutter_bootstrap.js')) {
+      console.error(
+        `verify-flutter-embed-assets: expected flutter_bootstrap.js in ${indexPath} (runtime Maps embed)`,
+      )
+      failed = true
+    }
+    continue
+  }
+
   if (!html.includes('maps.googleapis.com/maps/api/js')) {
     console.error(`verify-flutter-embed-assets: Maps script URL missing in ${indexPath}`)
     failed = true
@@ -87,7 +118,7 @@ for (const name of embeds) {
     .find((line) => line.includes('maps.googleapis.com/maps/api/js'))
   if (mapsLine && !mapsLine.includes('async')) {
     console.error(
-      `verify-flutter-embed-assets: Maps <script> should use the async attribute (${indexPath})`,
+      `verify-flutter-embed-assets: Maps should use the async attribute (${indexPath})`,
     )
     failed = true
   }
