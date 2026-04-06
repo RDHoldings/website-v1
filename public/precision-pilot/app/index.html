@@ -52,6 +52,7 @@
       });
     }
   </script>
-  <script src="flutter_bootstrap.js" async></script>
+  <!-- defer (not async): pdf.js module scripts must run first so globalThis.pdfjsLib exists before PdfxWeb asserts -->
+  <script src="flutter_bootstrap.js" defer></script>
 </body>
 </html>

@@ -17,368 +17,42 @@
   <base href="/precision-pilot-test/app/">
 
   <meta charset="UTF-8">
-  <!--
-    Test shell bridge: verbose browser-side diagnostics (not full flutter run -v — that is Dart/VM).
-    Forwards: console.*, lifecycle, fetch/XHR, WebSocket, perf observers, Maps, errors.
-    Optional: ?debugVerbose=1 (noisy), ?debugTrace=1 (UI pointer stacks).
-    Server-side / Firebase logs only appear if the app logs them to console.
-  -->
-  <script>
-  (function () {
-    try {
-      if (window.parent === window) return;
-      var O = window.location.origin;
-      var qs = window.location.search || '';
-      var debugTrace = /\bdebugTrace=1\b/.test(qs);
-      var debugVerbose = /\bdebugVerbose=1\b/.test(qs);
-      var seqCounter = 0;
-
-      function stringify(a) {
-        if (a instanceof Error) {
-          return a.name + ': ' + a.message + (a.stack ? '\n' + a.stack : '');
-        }
-        if (typeof a === 'object' && a !== null) {
-          try {
-            return JSON.stringify(a);
-          } catch (e) {
-            return Object.prototype.toString.call(a);
-          }
-        }
-        return String(a);
-      }
-
-      function collectStacks(args) {
-        var out = [];
-        for (var i = 0; i < args.length; i++) {
-          if (args[i] instanceof Error && args[i].stack) out.push(args[i].stack);
-        }
-        return out.length ? out.join('\n--- next Error ---\n') : '';
-      }
-
-      /**
-       * @param {string} level
-       * @param {Array} args
-       * @param {{ category?: string, durationMs?: number, extra?: object }} meta
-       */
-      function send(level, args, meta) {
-        meta = meta || {};
-        var parts = [];
-        for (var i = 0; i < args.length; i++) parts.push(stringify(args[i]));
-        var msg = parts.join(' ');
-        var stack = collectStacks(args);
-        var cat = meta.category || 'console';
-        if (!meta.category || meta.category === 'console') {
-          if (msg.indexOf('[lifecycle]') === 0) cat = 'lifecycle';
-          else if (msg.indexOf('[Maps]') === 0) cat = 'maps';
-          else if (msg.indexOf('[fetch]') === 0) cat = 'fetch';
-          else if (msg.indexOf('[xhr]') === 0) cat = 'fetch';
-          else if (msg.indexOf('[websocket]') === 0) cat = 'network';
-          else if (msg.indexOf('[perf]') === 0) cat = 'perf';
-          else if (msg.indexOf('[ui]') === 0 || msg.indexOf('[debugTrace]') === 0) cat = 'ui';
-          else if (msg.indexOf('[unhandledrejection]') === 0 || msg.indexOf('[rejectionhandled]') === 0)
-            cat = 'promise';
-          else if (msg.indexOf('[window.error]') === 0) cat = 'runtime';
-        }
-        window.parent.postMessage(
-          {
-            source: 'flutter-console',
-            level: level,
-            message: msg,
-            at: new Date().toISOString(),
-            stack: stack || undefined,
-            href: window.location.href,
-            seq: ++seqCounter,
-            category: cat,
-            durationMs: meta.durationMs,
-            extra: meta.extra,
-          },
-          O,
-        );
-      }
-
-      /* Boot: first line mirrors "verbose" startup context */
-      var tz = '';
-      try {
-        if (window.Intl && typeof Intl.DateTimeFormat === 'function') {
-          tz = new Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-        }
-      } catch (eTz) {
-        /* ignore */
-      }
-      send(
-        'info',
-        [
-          '[lifecycle] embed bridge ready',
-          'ua=' + (navigator.userAgent || ''),
-          'vp=' + (typeof window.innerWidth === 'number' ? window.innerWidth + 'x' + window.innerHeight : '?'),
-          'dpr=' + (window.devicePixelRatio || 1),
-          'lang=' + (navigator.language || ''),
-          'tz=' + tz,
-        ],
-        { category: 'lifecycle', extra: { timeOrigin: performance.timeOrigin || 0 } },
-      );
-
-      ['log', 'info', 'debug', 'warn', 'error'].forEach(function (level) {
-        var orig = console[level];
-        if (typeof orig !== 'function') return;
-        console[level] = function () {
-          var a = Array.prototype.slice.call(arguments);
-          send(level, a, { category: 'console' });
-          return orig.apply(console, arguments);
-        };
-      });
-
-      window.addEventListener(
-        'error',
-        function (ev) {
-          var err = ev.error;
-          send(
-            'error',
-            [
-              '[window.error]',
-              ev.message,
-              (ev.filename || '') + ':' + (ev.lineno || 0) + ':' + (ev.colno || 0),
-              err || undefined,
-            ],
-            { category: 'runtime', extra: { type: ev.type } },
-          );
-        },
-        true,
-      );
-
-      window.addEventListener('unhandledrejection', function (ev) {
-        send('error', ['[unhandledrejection]', ev.reason], { category: 'promise' });
-      });
-
-      window.addEventListener('rejectionhandled', function (ev) {
-        console.warn('[rejectionhandled]', ev.reason);
-      });
-
-      document.addEventListener('visibilitychange', function () {
-        console.info('[lifecycle] visibility', document.visibilityState);
-      });
-
-      window.addEventListener('pageshow', function (ev) {
-        if (debugVerbose) {
-          console.debug('[lifecycle] pageshow', { persisted: !!ev.persisted });
-        }
-      });
-
-      document.addEventListener('DOMContentLoaded', function () {
-        console.info('[lifecycle] DOMContentLoaded', Math.round(performance.now()) + 'ms since timeOrigin');
-      });
-
-      window.addEventListener('load', function () {
-        console.info('[lifecycle] window load', Math.round(performance.now()) + 'ms since timeOrigin');
-      });
-
-      /* Failed / non-OK fetch — geocoding & API calls often surface here */
-      if (typeof window.fetch === 'function') {
-        var ofetch = window.fetch;
-        window.fetch = function (input, init) {
-          var url =
-            typeof input === 'string'
-              ? input
-              : input && input.url
-                ? input.url
-                : String(input);
-          var method =
-            init && init.method
-              ? init.method
-              : typeof input === 'object' && input && input.method
-                ? input.method
-                : 'GET';
-          var t0 = performance.now();
-          if (debugVerbose) {
-            console.debug('[fetch] →', method, url);
-          }
-          return ofetch
-            .apply(this, arguments)
-            .then(function (r) {
-              var ms = Math.round(performance.now() - t0);
-              if (!r.ok) {
-                console.error('[fetch]', r.status, r.statusText, method, url, ms + 'ms');
-              } else if (debugVerbose) {
-                console.debug('[fetch] ←', r.status, method, url, ms + 'ms');
-              }
-              return r;
-            })
-            .catch(function (e) {
-              var ms = Math.round(performance.now() - t0);
-              console.error('[fetch] failed', method, url, ms + 'ms', e);
-              throw e;
-            });
-        };
-      }
-
-      /* XMLHttpRequest — many Flutter web plugins still use XHR */
-      if (typeof XMLHttpRequest !== 'undefined') {
-        var XO = XMLHttpRequest.prototype.open;
-        var XS = XMLHttpRequest.prototype.send;
-        XMLHttpRequest.prototype.open = function (method, url) {
-          this._ppMethod = method;
-          this._ppUrl = typeof url === 'string' ? url : String(url);
-          return XO.apply(this, arguments);
-        };
-        XMLHttpRequest.prototype.send = function () {
-          var self = this;
-          var t0 = performance.now();
-          if (debugVerbose) {
-            console.debug('[xhr] →', self._ppMethod || '?', self._ppUrl || '?');
-          }
-          function done() {
-            var ms = Math.round(performance.now() - t0);
-            var st = self.status || 0;
-            if (st >= 400) {
-              console.error('[xhr]', st, self._ppMethod, self._ppUrl, ms + 'ms');
-            } else if (debugVerbose) {
-              console.debug('[xhr] ←', st, self._ppMethod, self._ppUrl, ms + 'ms');
-            }
-          }
-          self.addEventListener('loadend', done);
-          return XS.apply(this, arguments);
-        };
-      }
-
-      /* WebSocket — only with debugVerbose (patching addEventListener can break removeEventListener) */
-      if (
-        debugVerbose &&
-        typeof window.WebSocket !== 'undefined' &&
-        WebSocket.prototype.addEventListener
-      ) {
-        (function () {
-          var origAEL = WebSocket.prototype.addEventListener;
-          WebSocket.prototype.addEventListener = function (type, listener, options) {
-            var self = this;
-            if (typeof listener !== 'function') {
-              return origAEL.call(this, type, listener, options);
-            }
-            return origAEL.call(this, type, function wrapped(ev) {
-              try {
-                var u = self.url || '';
-                if (type === 'open') console.info('[websocket] open', u);
-                if (type === 'close')
-                  console.info('[websocket] close', u, 'code=' + ev.code, 'clean=' + ev.wasClean);
-                if (type === 'error') console.error('[websocket] error', u);
-              } catch (eWs) {
-                /* ignore */
-              }
-              return listener.apply(this, arguments);
-            }, options);
-          };
-        })();
-      }
-
-      /* Long tasks & slow resources (Chrome) */
-      if (typeof PerformanceObserver !== 'undefined') {
-        try {
-          var poLt = new PerformanceObserver(function (list) {
-            var entries = list.getEntries();
-            for (var i = 0; i < entries.length; i++) {
-              var e = entries[i];
-              if (e.duration >= 50) {
-                console.warn('[perf] longtask', Math.round(e.duration) + 'ms', e.name || '');
-              }
-            }
-          });
-          poLt.observe({ type: 'longtask', buffered: true });
-        } catch (e1) {
-          /* longtask not supported */
-        }
-        if (debugVerbose) {
-          try {
-            var poRes = new PerformanceObserver(function (list) {
-              var entries = list.getEntries();
-              for (var i = 0; i < entries.length; i++) {
-                var e = entries[i];
-                if (e.duration >= 1000) {
-                  console.debug('[perf][resource slow]', e.name, Math.round(e.duration) + 'ms');
-                }
-              }
-            });
-            poRes.observe({ type: 'resource', buffered: true });
-          } catch (e2) {
-            /* ignore */
-          }
-        }
-      }
-
-      /* Maps: after CI inject, the script URL contains the real browser key (expected; restrict in GCP). */
-      var mapsDiagDone = false;
-      function auditMapsAfterDelay() {
-        if (mapsDiagDone) return;
-        mapsDiagDone = true;
-        if (typeof google !== 'undefined' && google.maps) {
-          /* debug: avoids Sentry/console pipelines treating routine success as INFO events */
-          console.debug(
-            '[Maps] google.maps is available. If the map is still blank, check Flutter google_maps_flutter_web config. HERE / other geocoding providers are configured in the Flutter app, not this HTML shell.',
-          );
-        } else {
-          console.error(
-            '[Maps] google.maps not available after load. Common causes: (1) GOOGLE_MAPS_WEB_API_KEY not set at build, (2) Maps JavaScript API disabled in Google Cloud, (3) billing, (4) API key HTTP referrer restrictions blocking this origin. HERE and other fallbacks are implemented in the Flutter/Dart code — not in this static site.',
-          );
-        }
-      }
-      setTimeout(auditMapsAfterDelay, 9000);
-
-      /* Optional: stack for each pointer interaction (noisy; use ?debugTrace=1) */
-      if (debugTrace) {
-        console.warn(
-          '[debugTrace] UI pointer stacks enabled — add debugTrace=1 to the app URL (test shell iframe src).',
-        );
-        ['pointerdown', 'click'].forEach(function (type) {
-          document.addEventListener(
-            type,
-            function (ev) {
-              var t = ev.target && ev.target.tagName ? ev.target.tagName : '?';
-              var stack = new Error('[ui ' + type + '] ' + t).stack;
-              console.debug('[ui]', type, t, stack);
-            },
-            true,
-          );
-        });
-      }
-
-      if (debugVerbose) {
-        console.warn(
-          '[debugVerbose] Extra network + resource logging enabled — add debugVerbose=1 to the app URL.',
-        );
-      }
-    } catch (e) {}
-  })();
-  </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Precision Pilot — pre-release test (web).">
+  <meta name="description" content="Precision Pilot — fleet and driver operations.">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="precision_freight">
+  <meta name="apple-mobile-web-app-title" content="Precision Pilot">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>Precision Pilot (test)</title>
+  <title>Precision Pilot</title>
   <link rel="manifest" href="manifest.json">
 
+  <!-- Maps JavaScript API is injected at runtime from AppConfig (getClientApiConfig / dart-define). See lib/services/google_maps_js_loader_web.dart -->
+</head>
+<body>
+  <script src='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.min.mjs' type='module'></script>
+  <script type='module'>
+  var { pdfjsLib } = globalThis;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.worker.mjs';
+
+  var pdfRenderOptions = {
+    cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/cmaps/',
+    cMapPacked: true,
+  }
+  </script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function (regs) {
-        regs.forEach(function (reg) {
-          var u = (reg.active && reg.active.scriptURL) || (reg.installing && reg.installing.scriptURL) || '';
-          if (u.indexOf('flutter_service_worker.js') !== -1) reg.unregister();
-        });
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js');
       });
     }
   </script>
-
-  <!-- Google Maps JS API — key injected at build via GOOGLE_MAPS_WEB_API_KEY (never commit real keys). See README. -->
-  <script async src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_WEB_API_KEY&amp;loading=async"></script>
-</head>
-<body>
-  <script src="flutter_bootstrap.js" async></script>
+  <!-- defer (not async): pdf.js module scripts must run first so globalThis.pdfjsLib exists before PdfxWeb asserts -->
+  <script src="flutter_bootstrap.js" defer></script>
 </body>
 </html>
