@@ -104,16 +104,17 @@ export function PrecisionPilotWebPage({ variant }) {
 
     const onMessage = (event) => {
       if (event.origin !== window.location.origin) return
-      if (!isMessageFromAppIframe(appIframeRef.current, event.source)) return
 
       // Injected browser hooks (console-panel README / debug scripts)
       if (event.data && event.data.source === 'flutter-console') {
+        if (!isMessageFromAppIframe(appIframeRef.current, event.source)) return
         forwardToConsolePanel(event.data)
         return
       }
 
-      // Precision Pilot Flutter (RDHoldings): postMessage(JSON) type precision-pilot-log
-      // when built with EMBED_PARENT_LOG_BRIDGE (sync workflow in the app repo)
+      // Precision Pilot Flutter: parent.postMessage(JSON) from embed_parent_log_bridge_web.dart
+      // when built with EMBED_PARENT_LOG_BRIDGE. Do not require event.source === iframe.contentWindow:
+      // some browsers / timing / ref wiring dropped valid messages; same-origin + shape is enough here.
       let bridged = null
       if (typeof event.data === 'string') {
         try {
