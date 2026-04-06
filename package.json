@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "node scripts/copy-spa-route-shells.mjs && node scripts/inject-google-maps-key.mjs && node scripts/inject-flutter-web-env.mjs && node scripts/verify-flutter-embed-assets.mjs",
+    "postbuild": "node scripts/copy-spa-route-shells.mjs && node scripts/rewrite-flutter-embed-base-href.mjs && node scripts/inject-google-maps-key.mjs && node scripts/inject-flutter-web-env.mjs && node scripts/verify-flutter-embed-assets.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

@@ -89,6 +89,7 @@
     <button type="button" id="btn-clear" title="Clear log (does not affect the app)">Clear</button>
     <button type="button" id="btn-export" title="Download full buffer as .txt">Export</button>
     <button type="button" id="btn-copy" title="Copy visible lines to clipboard">Copy visible</button>
+    <span id="copy-toast" aria-live="polite" style="font-size:10px;color:#86efac;max-width:200px"></span>
     <button type="button" id="btn-jump" class="primary" title="Scroll to bottom" hidden>Latest ↓</button>
     <label title="Pause automatic scroll when new lines arrive">
       <input type="checkbox" id="pause-scroll"> Pause scroll
@@ -158,6 +159,35 @@
       var searchRegex = document.getElementById('search-regex');
       var btnJump = document.getElementById('btn-jump');
       var pauseChk = document.getElementById('pause-scroll');
+      var btnCopy = document.getElementById('btn-copy');
+      var copyToast = document.getElementById('copy-toast');
+      var copyToastTimer = null;
+
+      function showCopyToast(msg, isError) {
+        if (!copyToast) return;
+        copyToast.textContent = msg || '';
+        copyToast.style.color = isError ? '#fca5a5' : '#86efac';
+        if (copyToastTimer) clearTimeout(copyToastTimer);
+        copyToastTimer = setTimeout(function () {
+          copyToast.textContent = '';
+        }, 4000);
+      }
+
+      function copyViaFallback(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = false;
+        try {
+          ok = document.execCommand('copy');
+        } catch (e) {}
+        document.body.removeChild(ta);
+        return ok;
+      }
 
       function catClass(cat) {
         var c = (cat || 'console').toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -454,8 +484,25 @@
           parts.push(w.innerText || '');
         }
         var t = parts.join('\n\n');
+        if (!t.trim()) {
+          showCopyToast('Nothing visible to copy.', true);
+          return;
+        }
+        var done = function (ok, err) {
+          if (ok) showCopyToast('Copied ' + parts.length + ' line(s).', false);
+          else showCopyToast(err || 'Copy failed — try Export or select text manually.', true);
+        };
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(t).catch(function () {});
+          navigator.clipboard.writeText(t).then(function () {
+            done(true);
+          }).catch(function () {
+            if (copyViaFallback(t)) done(true);
+            else done(false, 'Clipboard blocked — used fallback failed.');
+          });
+        } else if (copyViaFallback(t)) {
+          done(true);
+        } else {
+          done(false);
         }
       }
 
@@ -472,7 +519,7 @@
 
       document.getElementById('btn-clear').addEventListener('click', clearLog);
       document.getElementById('btn-export').addEventListener('click', exportLog);
-      document.getElementById('btn-copy').addEventListener('click', copyVisible);
+      btnCopy.addEventListener('click', copyVisible);
       btnJump.addEventListener('click', function () {
         pauseScroll = false;
         pauseChk.checked = false;

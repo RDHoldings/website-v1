@@ -37,6 +37,7 @@ jobs:
         run: npm run build
         # Vite copies public/ → dist/ (includes public/precision-pilot/** and public/precision-pilot-test/**)
         # For github.io project URLs only, set repo variable VITE_BASE_URL (e.g. /website-v1/) so iframe paths match.
+        # postbuild also rewrites Flutter embed <base href> to match (scripts/rewrite-flutter-embed-base-href.mjs).
         env:
           # Empty when unset — avoids odd string values in some runners; custom domain = leave unset (base '/')
           VITE_BASE_URL: ${{ vars.VITE_BASE_URL || '' }}
