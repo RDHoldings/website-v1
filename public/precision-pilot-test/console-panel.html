@@ -62,6 +62,7 @@
     .badge.cat-perf { background: #713f12; color: #fef3c7; }
     .badge.cat-maps { background: #4c1d95; color: #e9d5ff; }
     .badge.cat-ui { background: #164e63; color: #cffafe; }
+    .badge.cat-dart { background: #3b0764; color: #f3e8ff; }
     .badge.cat-default { background: #27272a; color: #d4d4d8; }
     .body { color: #d4d4d4; }
     .dur { color: #a78bfa; font-size: 10px; }
@@ -117,6 +118,7 @@
         <option value="promise">Promise</option>
         <option value="runtime">Runtime</option>
         <option value="ui">UI trace</option>
+        <option value="dart">Dart / Flutter (app)</option>
       </select>
     </label>
     <input type="search" id="search" placeholder="Search message / stack / URL…" autocomplete="off" aria-label="Search log">
@@ -130,7 +132,9 @@
   <p id="hint">
     Real-time log from the test shell bridge. Use filters + search to isolate failures.
     Shortcuts: <kbd>/</kbd> search · <kbd>Esc</kbd> clear search · <kbd>Ctrl+L</kbd> clear log.
-    Dart/VM/engine logs from <code>flutter run -v</code> are not in the browser unless the app prints them.
+    Lines from the embedded Flutter app (ErrorLogger / debugPrint) arrive when the app is built with
+    <code>EMBED_PARENT_LOG_BRIDGE=true</code> (CI test bundle). Dart/VM/engine logs from <code>flutter run -v</code>
+    are not in the browser unless the app prints them.
   </p>
   <div id="log" role="log" aria-live="polite" aria-relevant="additions">
     <div id="empty">No entries yet — load the app or trigger actions in the left pane.</div>
@@ -163,6 +167,7 @@
         if (c === 'maps') return 'cat-maps';
         if (c === 'promise' || c === 'runtime') return 'cat-promise';
         if (c === 'ui' || c === 'console') return c === 'ui' ? 'cat-ui' : 'cat-console';
+        if (c === 'dart') return 'cat-dart';
         return 'cat-default';
       }
 
@@ -177,6 +182,7 @@
         var c = (payloadCat || 'console').toLowerCase();
         if (filterVal === 'fetch') return c === 'fetch' || c.indexOf('xhr') !== -1;
         if (filterVal === 'network') return c === 'network';
+        if (filterVal === 'dart') return c === 'dart';
         return c.indexOf(filterVal) !== -1 || c === filterVal;
       }
 

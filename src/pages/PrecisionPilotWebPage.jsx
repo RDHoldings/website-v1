@@ -32,6 +32,8 @@ export function PrecisionPilotWebPage({ variant }) {
   const appIframeRef = useRef(null)
   const consoleIframeRef = useRef(null)
   const pendingConsoleRef = useRef([])
+  /** Monotonic line id for Flutter EMBED_PARENT_LOG_BRIDGE JSON posts */
+  const bridgeSeqRef = useRef(0)
 
   const forwardToConsolePanel = useCallback((payload) => {
     const win = consoleIframeRef.current?.contentWindow
@@ -76,10 +78,55 @@ export function PrecisionPilotWebPage({ variant }) {
 
     const onMessage = (event) => {
       if (event.origin !== window.location.origin) return
-      if (!event.data || event.data.source !== 'flutter-console') return
       const appWin = appIframeRef.current?.contentWindow
       if (!appWin || event.source !== appWin) return
-      forwardToConsolePanel(event.data)
+
+      // Injected browser hooks (console-panel README / debug scripts)
+      if (event.data && event.data.source === 'flutter-console') {
+        forwardToConsolePanel(event.data)
+        return
+      }
+
+      // Precision Pilot Flutter (RDHoldings): postMessage(JSON) type precision-pilot-log
+      // when built with EMBED_PARENT_LOG_BRIDGE (sync workflow in the app repo)
+      let bridged = null
+      if (typeof event.data === 'string') {
+        try {
+          bridged = JSON.parse(event.data)
+        } catch {
+          return
+        }
+      } else if (
+        event.data &&
+        typeof event.data === 'object' &&
+        event.data.type === 'precision-pilot-log'
+      ) {
+        bridged = event.data
+      }
+      if (!bridged || bridged.type !== 'precision-pilot-log') return
+
+      bridgeSeqRef.current += 1
+      const rawLevel = (bridged.level || 'log').toString().toLowerCase()
+      const hasErr = Boolean(bridged.error || bridged.stackTrace)
+      let level = 'log'
+      if (hasErr) level = 'error'
+      else if (rawLevel === 'debugprint') level = 'debug'
+      else if (rawLevel === 'log') level = 'info'
+      else level = rawLevel
+
+      const msg =
+        (bridged.message != null ? String(bridged.message) : '') +
+        (bridged.error ? `\n${bridged.error}` : '')
+
+      forwardToConsolePanel({
+        level,
+        message: msg,
+        at: bridged.t || new Date().toISOString(),
+        stack: bridged.stackTrace ? String(bridged.stackTrace) : '',
+        category: 'dart',
+        href: '',
+        seq: bridgeSeqRef.current,
+      })
     }
 
     window.addEventListener('message', onMessage)
