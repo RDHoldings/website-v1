@@ -8,6 +8,32 @@ import { getPrecisionPilotWebEmbedSrc } from '../config/precisionPilot'
 import { resolveSitePath, toAbsoluteSiteUrl } from '../utils/sitePaths'
 
 /**
+ * postMessage source is not always identical to iframe.contentWindow (nested frames,
+ * engine quirks). Accept any same-origin message whose window chain reaches the app iframe root.
+ * @param {HTMLIFrameElement | null} iframeEl
+ * @param {Window | null} source
+ */
+function isMessageFromAppIframe(iframeEl, source) {
+  if (!iframeEl || !source) return false
+  try {
+    const rootWin = iframeEl.contentWindow
+    if (!rootWin) return false
+    if (source === rootWin) return true
+    let w = source
+    for (let d = 0; d < 64 && w; d += 1) {
+      if (w === rootWin) return true
+      if (w === window) return false
+      const next = w.parent
+      if (!next || next === w) break
+      w = next
+    }
+  } catch {
+    return false
+  }
+  return false
+}
+
+/**
  * @param {{ variant: 'production' | 'test' }} props
  */
 export function PrecisionPilotWebPage({ variant }) {
@@ -78,8 +104,7 @@ export function PrecisionPilotWebPage({ variant }) {
 
     const onMessage = (event) => {
       if (event.origin !== window.location.origin) return
-      const appWin = appIframeRef.current?.contentWindow
-      if (!appWin || event.source !== appWin) return
+      if (!isMessageFromAppIframe(appIframeRef.current, event.source)) return
 
       // Injected browser hooks (console-panel README / debug scripts)
       if (event.data && event.data.source === 'flutter-console') {
