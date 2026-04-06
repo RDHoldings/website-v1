@@ -45,13 +45,11 @@
     cMapPacked: true,
   }
   </script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('sw.js');
-      });
-    }
-  </script>
+  <!--
+    Do not register a second service worker here. Flutter's flutter_bootstrap.js
+    already registers the build's worker (e.g. flutter_service_worker.js). A custom
+    sw.js alongside it caused prepareServiceWorker timeouts and broken caching on web.
+  -->
   <!-- defer (not async): pdf.js module scripts must run first so globalThis.pdfjsLib exists before PdfxWeb asserts -->
   <script src="flutter_bootstrap.js" defer></script>
 </body>

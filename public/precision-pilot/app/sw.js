@@ -1,6 +1,12 @@
-/* Offline shell cache for Precision Pilot web — complements Flutter's service worker. */
+/* Optional offline shell (not registered from index.html): Flutter’s bootstrap already
+ * registers the build service worker; a second worker here caused prepareServiceWorker
+ * timeouts. Kept for experiments only — register manually if you merge strategies.
+ * Resolve precache URLs relative to this script for subpath embeds. */
 const CACHE = 'precision-pilot-v1';
-const PRECACHE = ['/', '/index.html', '/main.dart.js', '/flutter.js', '/manifest.json'];
+const SW_ROOT = new URL('./', self.location.href);
+const PRECACHE = ['index.html', 'flutter_bootstrap.js', 'main.dart.js', 'manifest.json'].map(
+  (name) => new URL(name, SW_ROOT).href,
+);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
