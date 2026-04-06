@@ -94,6 +94,29 @@ jobs:
               fi
             done
           done
+          # pdfx on web requires pdf.js in index.html + defer on flutter_bootstrap (not async)
+          verify_pp_embed_index() {
+            local f="$1"
+            local label="$2"
+            if ! grep -q 'pdfRenderOptions' "$f"; then
+              echo "::error::$label: missing pdfRenderOptions (pdfx). Add pdf.js per Flutter web/index.html."
+              exit 1
+            fi
+            if ! grep -q 'pdfjs-dist' "$f"; then
+              echo "::error::$label: missing pdfjs-dist (pdfx)"
+              exit 1
+            fi
+            if grep -q 'src="flutter_bootstrap.js" async' "$f"; then
+              echo "::error::$label: flutter_bootstrap.js must use defer, not async"
+              exit 1
+            fi
+            if ! grep -q 'src="flutter_bootstrap.js" defer' "$f"; then
+              echo "::error::$label: expected defer on flutter_bootstrap.js"
+              exit 1
+            fi
+          }
+          verify_pp_embed_index dist/precision-pilot/app/index.html "production Flutter embed"
+          verify_pp_embed_index dist/precision-pilot-test/app/index.html "test Flutter embed"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
