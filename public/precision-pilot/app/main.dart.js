@@ -42994,7 +42994,7 @@ cHh(a){var s,r,q=a.d
 if(q==null)return"\u2014"
 s=a.a.toLowerCase()
 r=s==="truck"||s==="def"||s==="reefer"?" gal":""
-return B.i.t(q,B.i.b1(q,1)===0?0:2)+r},
+return B.i.t(q,B.i.b1(q,1)===0?0:3)+r},
 cHg(a){if(A.eH(a)===0&&A.eI(a)===0&&A.uy(a)===0)return A.vV("MM/dd/yyyy",null).f2(a)
 return A.vV("MM/dd/yy h:mm a",null).f2(a)},
 Ev:function Ev(a,b){this.c=a
@@ -51899,6 +51899,8 @@ cFM(a){var s=A.d4(a,!0,t.B9)
 B.f.cO(s,new A.aRJ())
 return new A.w(s,new A.aRK(),A.J(s).i("w<1,f>")).mD(0,new A.aRL()).aE(0," ")},
 cFL(a){var s=A.q("^\\s*(thank|receipt|copy|original|www\\.|http)\\b",!1,!1,!1)
+if(s.b.test(a))return!0
+s=A.q("^\\s*(sub\\s*total|subtotal|total|sales\\s*tax|tax)\\b",!1,!1,!1)
 if(s.b.test(a))return!0
 if(a.length>220)return!0
 return!1},
@@ -167680,12 +167682,11 @@ if(k.ax!=null||k.ay!=null||k.ch!=null)q.push(new A.Bq(B.pK,A.cHj(k),l))
 B.f.A(e,A.a([B.aj,A.dE(B.au,q,B.aZ,4,12)],g))}s=k.aj
 r=s.length
 if(r!==0||j.length!==0){j=j.length
-j=j!==0?j:r
 s=A.D(new A.w(s,new A.aY_(),A.J(s).i("w<1,m>")),t.l)
 B.f.A(s,A.cns(a,k))
 if(A.cnt(k))s.push(new A.A(B.dB,A.ff(B.ml,B.a07,new A.aY0(a),l),l))
-if(A.cnu(k)){r=A.d(a).ok.Q
-s.push(new A.A(B.m9,A.e("Weight variance: scale gross vs BOL differs by more than 500 lb \u2014 verify.",l,l,l,l,l,r==null?l:r.cT(A.d(a).ax.fy,B.ak),l,l,l),l))}B.f.A(e,A.a([B.z,A.cmy(s,"Receipts",new A.SV(j,l))],g))}else{j=k.f
+if(A.cnu(k)){q=A.d(a).ok.Q
+s.push(new A.A(B.m9,A.e("Weight variance: scale gross vs BOL differs by more than 500 lb \u2014 verify.",l,l,l,l,l,q==null?l:q.cT(A.d(a).ax.fy,B.ak),l,l,l),l))}B.f.A(e,A.a([B.z,A.cmy(s,"Receipts",new A.SV(j+r,l))],g))}else{j=k.f
 s=j==null
 r=!0
 if(!((s?0:j)>0)){q=k.r
