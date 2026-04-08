@@ -193299,7 +193299,7 @@ if(m!=null){s=m.b[1]
 s.toString
 l=B.e.q(s)
 return l.length<=200?l:B.e.a0(l,0,200)}return null},
-aSD(a5){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2=this,a3=null,a4=[new A.aG(A.q("(?:^|\\n)\\s*(?:tractor|truck|diesel|motor\\s*fuel|ulsd|clear\\s*dsl)\\s*[:\\-]?\\s*",!1,!1,!1),"truck"),new A.aG(A.q("(?:^|\\n)\\s*(?:reefer|rfg|apu|trailer\\s*fuel|trailer\\s*dsl|rf\\s*diesel)\\s*[:\\-]?\\s*",!1,!1,!1),"reefer"),new A.aG(A.q("(?:^|\\n)\\s*(?:def|adblue|diesel\\s*exhaust|exhaust\\s*fluid)\\s*[:\\-]?\\s*",!1,!1,!1),"def")]
+aSD(a5){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2=this,a3=null,a4=[new A.aG(A.q("(?:^|\\n)\\s*(?:tractor|truck|diesel|motor\\s*fuel|ulsd|clear\\s*dsl)\\s*[:\\-]?\\s*",!1,!1,!1),"truck"),new A.aG(A.q("(?:^|\\n)\\s*(?:reefer|rfg|apu|trailer\\s*fuel|trailer\\s*dsl|rf\\s*diesel)\\s*[:\\-]?\\s*",!1,!1,!1),"reefer"),new A.aG(A.q("(?:^|\\n)\\s*(?:\\bdef\\b|adblue|diesel[ \\t]+exhaust(?:[ \\t]+fluid)?)\\s*[:\\-]?\\s*",!1,!1,!1),"def")]
 for(s=a5.length,r=t.Qz,q=a3,p=q,o=p,n=o,m=n,l=m,k=0;k<3;++k){j=a4[k]
 i=j.b
 h=j.a.is(0,a5)
@@ -193358,7 +193358,7 @@ if(m!=null&&m>=0.1&&m<=500){if(k==null)k=m
 break}}if(k!=null)break}s=A.q("reefer|rfg|apu|trailer\\s*fuel",!0,!1,!1)
 if(s.b.test(a)){j=f.a0G(a)
 i=f.a0F(a)}else{i=e
-j=i}s=A.q("def|adblue",!0,!1,!1)
+j=i}s=A.q("\\bdef\\b|adblue",!1,!1,!1)
 if(s.b.test(a)){h=f.agK(a)
 g=f.agJ(a)}else{g=e
 h=g}return new A.I7([g,h,i,j,q,k])},
@@ -193494,8 +193494,11 @@ a0=n&&h>0?h/j:null
 b=g>0
 a1=b&&e>0?e/g:null
 return new A.Ps(m,l,j,i,g,f,a,a0,a1,s||n||b)},
-af1(a){var s=B.e.q(a.toLowerCase())
-if(s==="def"||B.e.bs(s,"def")||B.e.n(s,"def"))return B.Cm
+af1(a){var s=B.e.q(a.toLowerCase()),r=A.q("\\bdef\\s+points\\b",!1,!1,!1)
+if(!r.b.test(s)){r=!0
+if(s!=="def")if(!B.e.bs(s,"def ")){r=A.q("\\bdef\\b",!1,!1,!1)
+r=r.b.test(s)}}else r=!1
+if(r)return B.Cm
 if(B.e.n(s,"reefer")||s==="reefer")return B.Cl
 if(B.e.n(s,"trdsl")||B.e.n(s,"tdsl")||s==="dsl"||B.e.n(s,"diesel")||B.e.n(s,"ulsd")||B.e.n(s,"tractor")||B.e.n(s,"clear")||B.e.n(s,"cd2"))return B.uC
 return null},
@@ -193712,16 +193715,16 @@ s=[A.q("(?:reefer|rfg|apu|trailer\\s*fuel)[:\\s]*\\$?\\s*([\\d,]+(?:\\.\\d+)?)",
 for(n=t.Qz,r=0;r<3;++r)for(q=s[r].is(0,a),q=new A.jz(q.a,q.b,q.c);q.B();){p=q.d
 o=this.fL((p==null?n.a(p):p).b[1])
 if(o!=null&&o>=0&&o<=1e4)return o}return null},
-agK(a){var s,r,q,p,o,n=A.q("def|adblue|diesel\\s*exhaust|diesel\\s*exhaust\\s*fluid",!0,!1,!1)
+agK(a){var s,r,q,p,o,n=A.q("\\bdef\\b|adblue|diesel[ \\t]+exhaust(?:[ \\t]+fluid)?",!1,!1,!1)
 if(!n.b.test(a))return null
-s=[A.q("(?:def|adblue|diesel\\s*exhaust\\s*fluid)[:\\s]*([\\d,]+(?:\\.\\d+)?)\\s*(?:gal|g)?",!1,!1,!1),A.q("(?:def|adblue|diesel\\s*exhaust)[:\\s]*([\\d,]+(?:\\.\\d+)?)\\s*(?:gal|g)?",!1,!1,!1),A.q("def\\s*gallons?[:\\s]*([\\d,]+(?:\\.\\d+)?)\\s*(?:gal|g)?",!1,!1,!1),A.q("([\\d,]+(?:\\.\\d+)?)\\s*gals?\\s*(?:def|adblue)",!1,!1,!1)]
-for(n=t.Qz,r=0;r<4;++r)for(q=s[r].is(0,a),q=new A.jz(q.a,q.b,q.c);q.B();){p=q.d
+s=[A.q("(?:\\bdef\\b|adblue|diesel[ \\t]+exhaust(?:[ \\t]+fluid)?)[:\\s]*([\\d,]+(?:\\.\\d+)?)\\s*(?:gal|g)?",!1,!1,!1),A.q("\\bdef\\b\\s*gallons?[:\\s]*([\\d,]+(?:\\.\\d+)?)\\s*(?:gal|g)?",!1,!1,!1),A.q("([\\d,]+(?:\\.\\d+)?)\\s*gals?\\s*(?:\\bdef\\b|adblue)",!1,!1,!1)]
+for(n=t.Qz,r=0;r<3;++r)for(q=s[r].is(0,a),q=new A.jz(q.a,q.b,q.c);q.B();){p=q.d
 o=this.fL((p==null?n.a(p):p).b[1])
 if(o!=null&&o>=0.1&&o<=100)return o}return null},
-agJ(a){var s,r,q,p,o,n=A.q("def|adblue|diesel\\s*exhaust",!0,!1,!1)
+agJ(a){var s,r,q,p,o,n=A.q("\\bdef\\b|adblue|diesel[ \\t]+exhaust",!1,!1,!1)
 if(!n.b.test(a))return null
-s=[A.q("(?:def|adblue|diesel\\s*exhaust\\s*fluid)[:\\s]*\\$?\\s*([\\d,]+(?:\\.\\d+)?)",!1,!1,!1),A.q("(?:def|adblue|diesel\\s*exhaust)[:\\s]*\\$?\\s*([\\d,]+(?:\\.\\d+)?)",!1,!1,!1),A.q("def\\s*(?:total|amount)[:\\s]*\\$?\\s*([\\d,]+(?:\\.\\d+)?)",!1,!1,!1)]
-for(n=t.Qz,r=0;r<3;++r)for(q=s[r].is(0,a),q=new A.jz(q.a,q.b,q.c);q.B();){p=q.d
+s=[A.q("(?:\\bdef\\b|adblue|diesel[ \\t]+exhaust(?:[ \\t]+fluid)?)[:\\s]*\\$?\\s*([\\d,]+(?:\\.\\d+)?)",!1,!1,!1),A.q("\\bdef\\b\\s*(?:total|amount)[:\\s]*\\$?\\s*([\\d,]+(?:\\.\\d+)?)",!1,!1,!1)]
+for(n=t.Qz,r=0;r<2;++r)for(q=s[r].is(0,a),q=new A.jz(q.a,q.b,q.c);q.B();){p=q.d
 o=this.fL((p==null?n.a(p):p).b[1])
 if(o!=null&&o>=0&&o<=1e4)return o}return null},
 aSQ(a){var s,r,q,p=[A.q("price\\s*per\\s*gallon[:\\s]*\\$?\\s*([\\d,]+(?:\\.\\d+)?)",!1,!1,!1),A.q("price/gallon[:\\s]*\\$?\\s*([\\d,]+(?:\\.\\d+)?)",!1,!1,!1),A.q("ppg[:\\s]*\\$?\\s*([\\d,]+(?:\\.\\d+)?)",!1,!1,!1),A.q("\\$\\s*([\\d,]+(?:\\.\\d+)?)\\s*(?:per\\s*gal|/gal|gal)?",!1,!1,!1),A.q("([\\d,]+(?:\\.\\d+)?)\\s*(?:per\\s*gal|/gal|gal)",!1,!1,!1),A.q("@\\s*\\$?\\s*([\\d,]+(?:\\.\\d+)?)",!1,!1,!1),A.q("price[:\\s]*\\$?\\s*([\\d,]+(?:\\.\\d+)?)",!1,!1,!1)]
@@ -193792,16 +193795,17 @@ f=A.a([],t.Yi)
 if(a8.gwg())f.push(new A.mm("Truck","Truck diesel (#2 / ULSD / clear) \u2014 parsed total",a8.r,a2,a8.b,"FUEL_TRUCK_IFTA_TAXABLE",a,!0))
 if(a8.gzq())f.push(new A.mm("DEF","Diesel exhaust fluid (DEF) \u2014 parsed total",a8.x,a8.e,a8.f,"FUEL_DEF",a,!0))
 if(a8.gzs())f.push(new A.mm("Reefer","Reefer / APU / non-highway diesel \u2014 parsed total",a8.w,a8.c,a8.d,"FUEL_REEFER",a,!0))
-a2=A.D(f,t.ZE)
-if(g.length!==0)B.f.A(a2,c.b0D(g))
-else B.f.A(a2,c.bbP(a7,a8))
+a2=f.length===0
+j=A.D(f,t.ZE)
+if(a2&&g.length!==0)B.f.A(j,c.b0D(g))
+else if(a2)B.f.A(j,c.bbP(a7,a8))
 e=c.aNG(a8)
 d=c.aSF(a0,a8,b0)
-j=A.a([],t.s)
-if(m)j.push("Receipt mentions dyed/off-road diesel; IFTA taxable truck gallons set to 0 \u2014 verify.")
+a2=A.a([],t.s)
+if(m)a2.push("Receipt mentions dyed/off-road diesel; IFTA taxable truck gallons set to 0 \u2014 verify.")
 i=a8.z
-if(i!=null&&B.e.n(i,"..."))j.push("Fuel OCR used truncated raw text preview; full image text recommended for line items.")
-return new A.KL(new A.KN(new A.KM(a4,a1[2],a1[0],a1[1],a1[3],a6),new A.KO(s,r,q,o,n)),h,a2,e,d,j)},
+if(i!=null&&B.e.n(i,"..."))a2.push("Fuel OCR used truncated raw text preview; full image text recommended for line items.")
+return new A.KL(new A.KN(new A.KM(a4,a1[2],a1[0],a1[1],a1[3],a6),new A.KO(s,r,q,o,n)),h,j,e,d,a2)},
 b5y(a,b){return this.akH(a,b,null,null)},
 b0D(a){var s,r,q,p,o,n,m,l,k,j=A.a([],t.Yi)
 for(s=this.b,r=0;r<a.length;++r){q=a[r]
