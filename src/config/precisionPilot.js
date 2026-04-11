@@ -102,10 +102,10 @@ export const precisionPilot = {
       id: 'android',
       name: 'Android',
       description: 'Phones and tablets — download the release APK or install from Play Store when listed.',
-      fileUrl: PRECISION_PILOT_APK.release,
+      fileUrl: '/PrecisionPilot.apk',
       storeUrl: null,
       storeLabel: 'Google Play',
-      enabled: false,
+      enabled: true,
     },
     {
       id: 'ios',
