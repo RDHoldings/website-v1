@@ -46823,8 +46823,9 @@ c0v:function c0v(a,b){this.a=a
 this.b=b},
 c0w:function c0w(a,b){this.a=a
 this.b=b},
-c0z:function c0z(a,b){this.a=a
-this.b=b},
+c0z:function c0z(a,b,c){this.a=a
+this.b=b
+this.c=c},
 HW:function HW(a){this.a=a},
 a8I:function a8I(a){var _=this
 _.d=a
@@ -47843,7 +47844,7 @@ bJC:function bJC(a){this.a=a},
 bJD:function bJD(a){this.a=a},
 bJF:function bJF(a){this.a=a},
 bJG:function bJG(a){this.a=a},
-bJJ:function bJJ(){},
+bJJ:function bJJ(a){this.a=a},
 bJH:function bJH(a){this.a=a},
 bJI:function bJI(a){this.a=a},
 bJT:function bJT(){},
@@ -54410,8 +54411,9 @@ _.c=c
 _.d=d
 _.e=e},
 b8M:function b8M(a){this.a=a},
-b8N:function b8N(a,b){this.a=a
-this.b=b},
+b8N:function b8N(a,b,c){this.a=a
+this.b=b
+this.c=c},
 cUR(a,b){if(a)return!1
 if(b==="Cash")return!0
 if(b==="Personal_Credit")return!0
@@ -58598,42 +58600,43 @@ break
 case 1:return A.j(q,r)}})
 return A.k($async$t4,r)},
 a27(a,b,c,d){return A.cXP(a,b,c,d)},
-cXP(a,b,c,d){var s=0,r=A.l(t.T),q,p=2,o=[],n,m,l,k,j,i,h,g,f,e
-var $async$a27=A.h(function(a0,a1){if(a0===1){o.push(a1)
+cXP(a,b,c,a0){var s=0,r=A.l(t.T),q,p=2,o=[],n,m,l,k,j,i,h,g,f,e,d
+var $async$a27=A.h(function(a1,a2){if(a1===1){o.push(a2)
 s=p}for(;;)switch(s){case 0:p=4
 n=c?"png":"jpg"
-m="${DateTime.now().millisecondsSinceEpoch}."+A.p(n)
-i=$.aG
-h=(i==null?$.aG=$.c_():i).bs("[DEFAULT]")
-A.b7(h,$.bU(),!0)
-i=A.A_(new A.bK(h),null).Bb()
-g=i.a
-g=A.md(i.b,g.b.ll(g.a.ps("companies")))
-i=g.a
-i=A.md(g.b,i.b.ll(i.a.ps(b)))
-g=i.a
-g=A.md(i.b,g.b.ll(g.a.ps("truck_images")))
-i=g.a
-i=A.md(g.b,i.b.ll(i.a.ps(d)))
-g=i.a
-l=A.md(i.b,g.b.ll(g.a.ps(m)))
+m=""+Date.now()+"."+A.p(n)
+h=$.aG
+g=(h==null?$.aG=$.c_():h).bs("[DEFAULT]")
+A.b7(g,$.bU(),!0)
+h=A.A_(new A.bK(g),null).Bb()
+f=h.a
+f=A.md(h.b,f.b.ll(f.a.ps("companies")))
+h=f.a
+h=A.md(f.b,h.b.ll(h.a.ps(b)))
+f=h.a
+f=A.md(h.b,f.b.ll(f.a.ps("truck_images")))
+h=f.a
+h=A.md(f.b,h.b.ll(h.a.ps(a0)))
+f=h.a
+l=A.md(h.b,f.b.ll(f.a.ps(m)))
 k=new A.ya(null,null,null,null,c?"image/png":"image/jpeg",null)
 s=7
 return A.c(l.xj(a,k),$async$a27)
-case 7:j=a1
-i=j
+case 7:j=a2
+h=j
 s=8
-return A.c(A.md(i.b,i.a.gFx()).a.kL(),$async$a27)
-case 8:i=a1
-q=i
+return A.c(A.md(h.b,h.a.gFx()).a.kL(),$async$a27)
+case 8:h=a2
+q=h
 s=1
 break
 p=2
 s=6
 break
 case 4:p=3
-e=o.pop()
-$.cf.$1("Error uploading truck image: $e")
+d=o.pop()
+i=A.O(d)
+$.cf.$1("Error uploading truck image: "+A.p(i))
 q=null
 s=1
 break
@@ -185908,7 +185911,7 @@ aQA(){var s=this,r=s.a4B(s.a.d,""),q=t.h.a(J.J(s.a.d,"field_level_confidence"))
 if(q==null)q=A.A(t.N,t.z)
 return A.lu(null,new A.c0y(s,r,q),r.length,B.W,null,!1,B.ai,!1)},
 a4B(a,b){var s=A.a([],t.h2)
-J.iO(a,new A.c0z(this,s))
+J.iO(a,new A.c0z(this,s,b))
 return s}}
 A.c0A.prototype={
 $0(){var s=this.a.a.d
@@ -185948,13 +185951,13 @@ s===$&&A.b()
 s.sa3(0,a)}},
 $S:3}
 A.c0z.prototype={
-$2(a,b){var s,r,q,p,o,n,m=this
+$2(a,b){var s,r,q,p,o,n,m,l,k=this
 if(a==="raw_ocr_fragments"||a==="field_level_confidence")return
 s=t.P
-if(s.b(b))B.f.B(m.b,m.a.a4B(b,"$prefix$k/"))
-else if(t.j.b(b))for(r=J.S(b),q=m.b,p=t.YM,o=m.a,n=0;n<r.gE(b);++n)if(s.b(r.h(b,n)))B.f.B(q,o.a4B(s.a(r.h(b,n)),"$prefix$k/$i/"))
-else q.push(new A.aC("$prefix$k/$i",r.h(b,n),p))
-else m.b.push(new A.aC("$prefix$k",b,t.YM))},
+if(s.b(b))B.f.B(k.b,k.a.a4B(b,k.c+a+"/"))
+else if(t.j.b(b))for(r=J.S(b),q=k.b,p=k.c+a+"/",o=t.YM,n=k.a,m=0;m<r.gE(b);++m){l=p+m
+if(s.b(r.h(b,m)))B.f.B(q,n.a4B(s.a(r.h(b,m)),l+"/"))
+else q.push(new A.aC(l,r.h(b,m),o))}else k.b.push(new A.aC(k.c+a,b,t.YM))},
 $S:52}
 A.HW.prototype={
 X(){return new A.a8I(A.cnV())}}
@@ -186892,8 +186895,9 @@ B.f.B(a,A.a([B.P,A.R(l,B.t,B.tB,B.p,0,e,e)],h))}a.push(B.P)
 s=A.a([],h)
 l=d.e
 if(l!=null)s.push(f.alp(a2,B.kP,"$"+B.h.t(l,2)+" CPM"))
-if(o)s.push(f.alq(a2,B.i_,"Truck: ${truck.name ?? truck.id}",c.y2,new A.bHW(f,a2,c)))
-o=d.p4
+if(o){o=c.Q
+if(o==null)o=c.a
+s.push(f.alq(a2,B.i_,"Truck: "+o,c.y2,new A.bHW(f,a2,c)))}o=d.p4
 if(o!=null)s.push(f.alp(a2,B.Ib,"Hired: "+f.ajw(o)))
 a.push(A.dh(B.av,s,B.aY,8,8))
 a=A.a([A.aN(new A.x(B.W,A.P(a,B.C,e,B.o,B.p,0,B.u),e),B.aE,e)],h)
@@ -192739,7 +192743,7 @@ if(m==null||l==null||n.c==null){s=1
 break}h=n.c
 h.toString
 s=3
-return A.c(A.cY(null,null,!0,null,new A.bJJ(),h,null,!0,!0,t.y),$async$ID)
+return A.c(A.cY(null,null,!0,null,new A.bJJ(a),h,null,!0,!0,t.y),$async$ID)
 case 3:if(c!==!0||n.c==null){s=1
 break}p=5
 s=8
@@ -192791,8 +192795,9 @@ q=A.R(A.a([f,A.dh(B.ow,d,B.aY,4,4)],e),B.C,B.o,B.p,0,a0,a0)
 n=A.a([],e)
 f=a1.e
 if(f!=null)n.push(a.aiO(a2,B.kP,"$"+B.h.t(f,2)+" CPM"))
-if(j)n.push(a.aiP(a2,B.i_,"Truck: ${truck.name ?? truck.id}",r.y2,new A.bJW(a,a2,r)))
-j=a1.p4
+if(j){j=r.Q
+if(j==null)j=r.a
+n.push(a.aiP(a2,B.i_,"Truck: "+j,r.y2,new A.bJW(a,a2,r)))}j=a1.p4
 if(j!=null)n.push(a.aiO(a2,B.Ib,"Hired: "+a.aiN(j)))
 q=A.a([A.aN(new A.x(B.W,A.P(A.a([q,B.P,A.dh(B.av,n,B.aY,8,8)],e),B.C,a0,B.o,B.p,0,B.u),a0),B.aE,a0)],e)
 if(m!=null){n=B.h.t(m.e,0)
@@ -192964,7 +192969,8 @@ A.bJG.prototype={
 $0(){return this.a.w=!1},
 $S:0}
 A.bJJ.prototype={
-$1(a){var s=null,r=A.e("Remove ${doc.name ?? doc.type}?",s,s,s,s,s,s,s,s,s)
+$1(a){var s=null,r=this.a,q=r.c
+r=A.e("Remove "+A.p(q==null?r.d:q)+"?",s,s,s,s,s,s,s,s,s)
 return A.dy(A.a([A.bz(B.bi,s,s,new A.bJH(a),s,s),A.co(B.hE,new A.bJI(a),s)],t.p),r,s,B.a1E)},
 $S:15}
 A.bJH.prototype={
@@ -209089,14 +209095,14 @@ break
 case 3:return A.j(null,r)}})
 return A.k($async$XT,r)},
 Rb(a,b){var s=A.A(t.N,t.z)
-J.iO(a,new A.b8N(this,s))
+J.iO(a,new A.b8N(this,s,b))
 return s}}
 A.b8N.prototype={
-$2(a,b){var s,r,q,p,o=this,n=t.P
-if(n.b(b))o.b.B(0,o.a.Rb(b,"$prefix$k/"))
-else if(t.j.b(b))for(s=J.S(b),r=o.b,q=o.a,p=0;p<s.gE(b);++p)if(n.b(s.h(b,p)))r.B(0,q.Rb(n.a(s.h(b,p)),"$prefix$k/$i/"))
-else r.k(0,"$prefix$k/$i",s.h(b,p))
-else o.b.k(0,"$prefix$k",b)},
+$2(a,b){var s,r,q,p,o,n,m=this,l=t.P
+if(l.b(b))m.b.B(0,m.a.Rb(b,m.c+a+"/"))
+else if(t.j.b(b))for(s=J.S(b),r=m.b,q=m.c+a+"/",p=m.a,o=0;o<s.gE(b);++o){n=q+o
+if(l.b(s.h(b,o)))r.B(0,p.Rb(l.a(s.h(b,o)),n+"/"))
+else r.k(0,n,s.h(b,o))}else m.b.k(0,m.c+a,b)},
 $S:52}
 A.H3.prototype={}
 A.alA.prototype={
