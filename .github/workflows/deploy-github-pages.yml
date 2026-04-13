@@ -24,6 +24,56 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Build Android APKs from the Flutter app and place them under public/ so Vite copies them to dist/.
+      # Paths must match src/config/precisionPilot.js (PRECISION_PILOT_APK).
+      # Private app repo: add repository secret FLUTTER_APP_CHECKOUT_TOKEN (fine-grained: Contents read on that repo).
+      # Public app repo: leave the secret unset; clone uses anonymous HTTPS.
+      - name: Checkout Precision Pilot (Flutter)
+        env:
+          FLUTTER_APP_REPO: ${{ vars.FLUTTER_APP_REPO || 'RDHoldings/precision-freight' }}
+          FLUTTER_APP_CHECKOUT_TOKEN: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN }}
+        run: |
+          set -e
+          if [ -n "$FLUTTER_APP_CHECKOUT_TOKEN" ]; then
+            git clone --depth 1 "https://x-access-token:${FLUTTER_APP_CHECKOUT_TOKEN}@github.com/${FLUTTER_APP_REPO}.git" precision-pilot-app
+          else
+            git clone --depth 1 "https://github.com/${FLUTTER_APP_REPO}.git" precision-pilot-app
+          fi
+
+      - name: Set up Java (Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter pub get
+        working-directory: precision-pilot-app
+        run: flutter pub get
+
+      - name: Build Android APKs (release + debug)
+        working-directory: precision-pilot-app
+        run: |
+          set -e
+          flutter build apk --release
+          flutter build apk --debug
+
+      - name: Stage APKs into website public/
+        run: |
+          set -e
+          mkdir -p public/precision-pilot/downloads public/precision-pilot-test/downloads
+          cp precision-pilot-app/build/app/outputs/flutter-apk/app-release.apk \
+            public/precision-pilot/downloads/precision-pilot-release.apk
+          cp precision-pilot-app/build/app/outputs/flutter-apk/app-debug.apk \
+            public/precision-pilot-test/downloads/precision-pilot-debug.apk
+          ls -la public/precision-pilot/downloads/
+          ls -la public/precision-pilot-test/downloads/
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -118,6 +168,14 @@ jobs:
           }
           verify_pp_embed_index dist/precision-pilot/app/index.html "production Flutter embed"
           verify_pp_embed_index dist/precision-pilot-test/app/index.html "test Flutter embed"
+          for apk in \
+            dist/precision-pilot/downloads/precision-pilot-release.apk \
+            dist/precision-pilot-test/downloads/precision-pilot-debug.apk; do
+            if [ ! -f "$apk" ]; then
+              echo "::error::$apk missing (Android APK staging step failed?)"
+              exit 1
+            fi
+          done
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

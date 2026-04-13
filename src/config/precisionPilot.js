@@ -4,8 +4,10 @@ import { resolveSitePath } from '../utils/sitePaths'
  * Precision Pilot — marketing copy & download endpoints
  *
  * Plug-and-play:
- * 1. Drop builds into `public/downloads/precision-pilot/` using the filenames below
- *    (or change `fileUrl` to match your asset names).
+ * 1. APKs: GitHub Actions (deploy-github-pages) builds from the Flutter repo and writes:
+ *    - `public/precision-pilot/downloads/precision-pilot-release.apk` (production)
+ *    - `public/precision-pilot-test/downloads/precision-pilot-debug.apk` (pre-release test)
+ *    Or drop builds there manually (or change `fileUrl` to match your asset names).
  * 2. Set `enabled: true` for each platform you are ready to ship.
  * 3. For store listings, set `storeUrl` (and optional `storeLabel`); users will see the
  *    store button as the primary action when `storeUrl` is set.
@@ -13,17 +15,16 @@ import { resolveSitePath } from '../utils/sitePaths'
  * Paths under `fileUrl` are served from `public/` — e.g. `/downloads/...` → `public/downloads/...`
  */
 
-/** Base URL for self-hosted bundles (relative to site origin) */
+/** Base URL for self-hosted non-APK bundles (.ipa / .msix placeholders) under public/ */
 export const PRECISION_PILOT_DOWNLOAD_BASE = '/downloads/precision-pilot'
 
 /**
- * Stable APK filenames (copy from Flutter `build/app/outputs/flutter-apk/` after build).
- * - Debug → `precision-pilot-debug.apk` (sideload / internal testing; matches `/precision-pilot-test`)
- * - Release → `precision-pilot-release.apk` (production; matches `/precision-pilot`)
+ * APK paths (served from public/ → dist/ by Vite).
+ * Release ↔ `/precision-pilot`; debug ↔ `/precision-pilot-test`.
  */
 export const PRECISION_PILOT_APK = {
-  debug: `${PRECISION_PILOT_DOWNLOAD_BASE}/precision-pilot-debug.apk`,
-  release: `${PRECISION_PILOT_DOWNLOAD_BASE}/precision-pilot-release.apk`,
+  release: '/precision-pilot/downloads/precision-pilot-release.apk',
+  debug: '/precision-pilot-test/downloads/precision-pilot-debug.apk',
 }
 
 /**
@@ -102,7 +103,7 @@ export const precisionPilot = {
       id: 'android',
       name: 'Android',
       description: 'Phones and tablets — download the release APK or install from Play Store when listed.',
-      fileUrl: '/PrecisionPilot.apk',
+      fileUrl: PRECISION_PILOT_APK.release,
       storeUrl: null,
       storeLabel: 'Google Play',
       enabled: true,
@@ -136,4 +137,23 @@ export const precisionPilot = {
       enabled: false,
     },
   ],
+}
+
+/**
+ * Android download card: release APK on `/precision-pilot`, debug APK on `/precision-pilot-test`.
+ * @param {'production' | 'test'} variant
+ * @returns {typeof precisionPilot.platforms}
+ */
+export function getPrecisionPilotPlatforms(variant) {
+  const androidApkUrl = variant === 'test' ? PRECISION_PILOT_APK.debug : PRECISION_PILOT_APK.release
+  const androidDescription =
+    variant === 'test'
+      ? 'Phones and tablets — download the debug APK for internal QA (this pre-release test environment).'
+      : 'Phones and tablets — download the release APK or install from Play Store when listed.'
+
+  return precisionPilot.platforms.map((p) =>
+    p.id === 'android'
+      ? { ...p, fileUrl: androidApkUrl, description: androidDescription }
+      : p,
+  )
 }

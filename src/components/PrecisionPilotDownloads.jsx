@@ -1,8 +1,10 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Download, ExternalLink, Globe, Laptop, Smartphone, TabletSmartphone } from 'lucide-react'
-import { precisionPilot } from '../config/precisionPilot'
+import { getPrecisionPilotPlatforms, precisionPilot } from '../config/precisionPilot'
 import { fadeUp, staggerContainer } from '../utils/animations'
+import { resolveSitePath } from '../utils/sitePaths'
 
 const platformIcons = {
   android: Smartphone,
@@ -63,6 +65,9 @@ function PlatformCard({ platform }) {
     platform.id === 'web' && (fileIsRemote || Boolean(fileIsInternalPath))
   const fileLabel = isWebApp ? 'Open web app' : 'Download'
 
+  const downloadHref =
+    showFile && fileIsInternalPath && !isWebApp ? resolveSitePath(platform.fileUrl) : platform.fileUrl
+
   const primaryFileOnly = showFile && !showStore
   const FileActionIcon = isWebApp ? Globe : Download
 
@@ -109,7 +114,7 @@ function PlatformCard({ platform }) {
 
         {showFile && !(fileIsInternalPath && isWebApp) ? (
           <a
-            href={platform.fileUrl}
+            href={downloadHref}
             {...(fileIsRemote
               ? { target: '_blank', rel: 'noopener noreferrer' }
               : { download: true })}
@@ -143,8 +148,12 @@ function PlatformCard({ platform }) {
   )
 }
 
-export function PrecisionPilotDownloads() {
-  const { downloadsHeading, downloadsSubtext, platforms } = precisionPilot
+/**
+ * @param {{ variant?: 'production' | 'test' }} props
+ */
+export function PrecisionPilotDownloads({ variant = 'production' }) {
+  const { downloadsHeading, downloadsSubtext } = precisionPilot
+  const platforms = useMemo(() => getPrecisionPilotPlatforms(variant), [variant])
 
   return (
     <motion.div

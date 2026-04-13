@@ -375,7 +375,7 @@ export function PrecisionPilotWebPage({ variant }) {
                 </li>
               </ul>
             </div>
-            <PrecisionPilotDownloads />
+            <PrecisionPilotDownloads variant={variant} />
           </div>
         )}
       </main>
