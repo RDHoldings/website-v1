@@ -28,8 +28,21 @@ jobs:
       # Paths must match src/config/precisionPilot.js (PRECISION_PILOT_APK).
       # Without the PAT, checkout of RDHoldings/precision-freight fails (anonymous HTTPS or GITHUB_TOKEN → 404).
       # We then create empty placeholder .apk files so Vite + verify still succeed; set the secret for real builds.
+      - name: Configure Flutter APK build
+        id: flutter_apk
+        env:
+          FLUTTER_APP_CHECKOUT_TOKEN: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN }}
+        run: |
+          set -e
+          if [ -n "$FLUTTER_APP_CHECKOUT_TOKEN" ]; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::FLUTTER_APP_CHECKOUT_TOKEN not set — using empty APK placeholders. Add a fine-grained PAT (Contents: Read on RDHoldings/precision-freight) as this repository secret to build real APKs."
+          fi
+
       - name: Checkout Precision Pilot (Flutter)
-        if: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN != '' }}
+        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ vars.FLUTTER_APP_REPO || 'RDHoldings/precision-freight' }}
@@ -38,26 +51,26 @@ jobs:
           fetch-depth: 1
 
       - name: Set up Java (Android)
-        if: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN != '' }}
+        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Flutter
-        if: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN != '' }}
+        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
       - name: Flutter pub get
-        if: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN != '' }}
+        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
         working-directory: precision-pilot-app
         run: flutter pub get
 
       - name: Build Android APKs (release + debug)
-        if: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN != '' }}
+        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
         working-directory: precision-pilot-app
         run: |
           set -e
@@ -65,7 +78,7 @@ jobs:
           flutter build apk --debug
 
       - name: Stage APKs into website public/
-        if: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN != '' }}
+        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
         run: |
           set -e
           mkdir -p public/precision-pilot/downloads public/precision-pilot-test/downloads
@@ -76,14 +89,13 @@ jobs:
           ls -la public/precision-pilot/downloads/
           ls -la public/precision-pilot-test/downloads/
 
-      - name: Placeholder APKs when FLUTTER_APP_CHECKOUT_TOKEN is unset
-        if: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN == '' }}
+      - name: Placeholder APKs when Flutter PAT is not configured
+        if: ${{ steps.flutter_apk.outputs.build != 'true' }}
         run: |
           set -e
           mkdir -p public/precision-pilot/downloads public/precision-pilot-test/downloads
           : > public/precision-pilot/downloads/precision-pilot-release.apk
           : > public/precision-pilot-test/downloads/precision-pilot-debug.apk
-          echo "::warning::APKs are empty placeholders. Add repository secret FLUTTER_APP_CHECKOUT_TOKEN (fine-grained PAT, Contents: Read on RDHoldings/precision-freight) to build installable APKs in CI."
 
       - name: Setup Node
         uses: actions/setup-node@v4
