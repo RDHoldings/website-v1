@@ -26,19 +26,18 @@ jobs:
 
       # Build Android APKs from the Flutter app and place them under public/ so Vite copies them to dist/.
       # Paths must match src/config/precisionPilot.js (PRECISION_PILOT_APK).
-      # Private app repo: add repository secret FLUTTER_APP_CHECKOUT_TOKEN (fine-grained: Contents read on that repo).
-      # Public app repo: leave the secret unset; clone uses anonymous HTTPS.
+      #
+      # Private app repo (typical): set secret FLUTTER_APP_CHECKOUT_TOKEN — fine-grained PAT, Contents: Read on the
+      # Flutter repo (default RDHoldings/precision-freight; override with repo variable FLUTTER_APP_REPO).
+      # If unset, checkout uses github.token — that only works when the org allows this workflow to read the other
+      # private repo (Settings → Actions → General → Workflow permissions). Otherwise the checkout step fails with 403.
       - name: Checkout Precision Pilot (Flutter)
-        env:
-          FLUTTER_APP_REPO: ${{ vars.FLUTTER_APP_REPO || 'RDHoldings/precision-freight' }}
-          FLUTTER_APP_CHECKOUT_TOKEN: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN }}
-        run: |
-          set -e
-          if [ -n "$FLUTTER_APP_CHECKOUT_TOKEN" ]; then
-            git clone --depth 1 "https://x-access-token:${FLUTTER_APP_CHECKOUT_TOKEN}@github.com/${FLUTTER_APP_REPO}.git" precision-pilot-app
-          else
-            git clone --depth 1 "https://github.com/${FLUTTER_APP_REPO}.git" precision-pilot-app
-          fi
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.FLUTTER_APP_REPO || 'RDHoldings/precision-freight' }}
+          path: precision-pilot-app
+          token: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN || github.token }}
+          fetch-depth: 1
 
       - name: Set up Java (Android)
         uses: actions/setup-java@v4
@@ -77,7 +76,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies
