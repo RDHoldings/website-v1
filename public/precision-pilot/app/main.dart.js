@@ -57304,7 +57304,7 @@ s=3
 return A.c(A.bfr(a,b,c),$async$aoZ)
 case 3:p=e
 o=p.c
-if(A.cC0()){n=B.e.q("").toLowerCase()
+if(A.cC0()){n=B.e.q("false").toLowerCase()
 m=n==="true"||n==="1"||n==="yes"}else m=!1
 l="precision"
 s=m?4:5
@@ -60449,9 +60449,9 @@ return A.j4()},
 cBY(){var s=B.e.q(A.dH("GEMINI_API_KEY_WEB"))
 if(s.length!==0)return s
 return A.dH("GEMINI_API_KEY")},
-cC0(){var s=B.e.q("").toLowerCase()
+cC0(){var s=B.e.q("false").toLowerCase()
 return s==="true"||s==="1"||s==="yes"},
-cBZ(){var s=B.e.q("").toLowerCase()
+cBZ(){var s=B.e.q("false").toLowerCase()
 return s==="true"||s==="1"||s==="yes"},
 cNS(){var s=A.TC()
 if(s){if(A.cC_())return"Document scanning uses the server. Ensure Cloud Function geminiDocumentExtract is deployed and Secret GEMINI_API_KEY is set in Firebase."
