@@ -60416,16 +60416,16 @@ case"GEMINI_API_KEY_WEB":return""
 case"EIA_API_KEY":return""
 case"APP_INVITE_BASE_URL":return""
 default:return""}},
-dH(a){var s,r,q=A.TC()
-if(q){q=$.ad4.h(0,a)
-s=B.e.q(q==null?"":q)
-if(s.length!==0)return s
-r=A.cu3(a)
+dH(a){var s,r,q
+if(A.TC()){s=$.ad4.h(0,a)
+r=B.e.q(s==null?"":s)
 if(r.length!==0)return r
-return""}r=A.cu3(a)
-if(r.length!==0)return r
-q=$.ad4.h(0,a)
-return B.e.q(q==null?"":q)},
+q=A.cu3(a)
+if(q.length!==0)return q
+return""}q=A.cu3(a)
+if(q.length!==0)return q
+s=$.ad4.h(0,a)
+return B.e.q(s==null?"":s)},
 TC(){var s=B.e.q("true").toLowerCase()
 if(s==="true"||s==="1"||s==="yes")return!0
 if(s==="false"||s==="0"||s==="no")return!1
