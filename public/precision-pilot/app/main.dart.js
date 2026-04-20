@@ -60441,7 +60441,7 @@ wL(){if(A.dH("GOOGLE_CLOUD_VISION_API_KEY").length!==0)return!0
 var s=A.aPU()
 if(s)return!0
 return!1},
-cBZ(){var s=B.e.q("false").toLowerCase()
+cBZ(){var s=B.e.q("true").toLowerCase()
 if(s==="false"||s==="0"||s==="no")return!1
 if(s==="true"||s==="1"||s==="yes")return!0
 return A.j4()},
