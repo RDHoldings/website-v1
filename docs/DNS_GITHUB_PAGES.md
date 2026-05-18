@@ -141,7 +141,7 @@ The browser is rejecting the **TLS certificate** for **`reddominoholdings.com`**
 
 ### Likely causes
 
-1. **Certificate still provisioning** — After apex **A** records go live, GitHub/Let’s Encrypt can take **up to an hour or longer** (sometimes **24h**) to issue a cert that includes the apex. Until then, **https://reddominoholdings.com** can show **COMMON_NAME_INVALID**.
+1. **Certificate still provisioning** — After apex **A** records go live, GitHub/Let’s Encrypt can take **up to an hour or longer** (sometimes **24h**) to issue a cert that includes the apex. Until then, <https://reddominoholdings.com> can show **COMMON_NAME_INVALID**.
 2. **Only `www` on the cert first** — Try **`https://www.reddominoholdings.com`**. If **www** loads but the **apex** does not, wait and re-check **Settings → Pages** until both are covered; do **not** rely on the apex until the cert is valid.
 3. **HSTS stuck in the browser** — If you (or a prior host) sent **HSTS** for `reddominoholdings.com`, Edge will **only** use HTTPS and will keep failing until the cert is valid—or you clear HSTS for testing.
 
