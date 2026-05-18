@@ -21,9 +21,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-<<<<<<< HEAD
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-=======
       # Grouped env keeps Build step readable while preserving all integration knobs.
       VITE_BASE_URL: ${{ vars.VITE_BASE_URL || '' }}
       VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY || '' }}
@@ -44,7 +42,6 @@ jobs:
       APP_INVITE_BASE_URL: ${{ vars.APP_INVITE_BASE_URL || '' }}
       INJECT_FLUTTER_WEB_INCLUDE_RESEND: ${{ vars.INJECT_FLUTTER_WEB_INCLUDE_RESEND || '' }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
->>>>>>> 6df8947 (Add Living Bible website embeds and route verification.)
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -135,7 +132,6 @@ jobs:
         run: npm run build
         # Vite copies public/ → dist/ (includes public/precision-pilot/** and public/precision-pilot-test/**)
         # For github.io project URLs only, set repo variable VITE_BASE_URL (e.g. /website-v1/) so iframe paths match.
-<<<<<<< HEAD
         # postbuild also rewrites Flutter embed <base href> to match (scripts/rewrite-flutter-embed-base-href.mjs).
         env:
           # Empty when unset — avoids odd string values in some runners; custom domain = leave unset (base '/')
@@ -162,8 +158,6 @@ jobs:
           # Set to 'true' only if you accept exposing Resend in the client (not recommended)
           INJECT_FLUTTER_WEB_INCLUDE_RESEND: ${{ vars.INJECT_FLUTTER_WEB_INCLUDE_RESEND || '' }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-=======
->>>>>>> 6df8947 (Add Living Bible website embeds and route verification.)
 
       # GitHub Pages serves 404.html for unknown paths — same as index.html so React Router works on refresh
       - name: SPA fallback for client-side routes
@@ -219,7 +213,6 @@ jobs:
           }
           verify_pp_embed_index dist/precision-pilot/app/index.html "production Flutter embed"
           verify_pp_embed_index dist/precision-pilot-test/app/index.html "test Flutter embed"
-<<<<<<< HEAD
           for apk in \
             dist/precision-pilot/downloads/precision-pilot-release.apk \
             dist/precision-pilot-test/downloads/precision-pilot-debug.apk; do
@@ -228,7 +221,6 @@ jobs:
               exit 1
             fi
           done
-=======
           # Living Bible Expo embed verification: routed _expo/static assets under expected path prefix
           verify_lb_embed_index() {
             local f="$1"
@@ -249,7 +241,6 @@ jobs:
           }
           verify_lb_embed_index dist/living-bible/app/index.html "production Expo embed" "/living-bible/app"
           verify_lb_embed_index dist/living-bible-test/app/index.html "test Expo embed" "/living-bible-test/app"
->>>>>>> 6df8947 (Add Living Bible website embeds and route verification.)
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

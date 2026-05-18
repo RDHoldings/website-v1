@@ -18,6 +18,7 @@ export default [
       'public/precision-pilot-test/**',
       'public/living-bible/**',
       'public/living-bible-test/**',
+      'public/firebase-messaging-sw.js',
     ],
   },
   js.configs.recommended,
