@@ -141,7 +141,7 @@ jobs:
 
   deploy_firebase_backend:
     # Intentional complexity: functions/rules deploy is isolated so Pages deploy can proceed independently.
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && vars.FIREBASE_PROJECT_ID != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
