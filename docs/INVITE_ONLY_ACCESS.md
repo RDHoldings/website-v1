@@ -24,16 +24,19 @@ These routes are controlled by Firebase Auth + Firestore + Cloud Functions invit
 
 ## Cloud Functions
 
-- `sendInvite` (admin-only): creates/updates invite + sends email via Resend.
+- `sendInvite` (admin-only): creates/updates invite + sends email via Gmail API.
 - `resendInvite` (admin-only): reuses token and re-sends email.
 - `revokeInvite` (admin-only): marks invite revoked.
-- `seedInitialInvite` (admin-only): creates pending seed invite (`marc77014@gmail.com` default).
+- `seedInitialInvite` (admin-only): creates pending seed invite (`marc77014@gmail.com` default), optionally sends immediately (`sendEmail: true`).
 - `bootstrapAdmin`: grants first admin when auth email matches `BOOTSTRAP_ADMIN_EMAIL`.
 - `claimInvite`: validates invite/token and grants `access_grants/{uid}`.
 
 ## Required secrets / env
 
-- Firebase Functions secret: `RESEND_API_KEY`
+- Firebase Functions secrets:
+  - `GMAIL_CLIENT_ID`
+  - `GMAIL_CLIENT_SECRET`
+  - `GMAIL_REFRESH_TOKEN`
 - Client env:
   - `VITE_BOOTSTRAP_ADMIN_EMAIL`
   - `VITE_FIREBASE_FUNCTIONS_REGION` (default `us-central1`)
@@ -41,6 +44,9 @@ These routes are controlled by Firebase Auth + Firestore + Cloud Functions invit
 ## First-time bootstrap checklist
 
 1. Deploy Firestore rules + functions.
-2. Set `RESEND_API_KEY` secret in Firebase Functions.
+2. Set Gmail OAuth secrets in Firebase Functions:
+   - `firebase functions:secrets:set GMAIL_CLIENT_ID`
+   - `firebase functions:secrets:set GMAIL_CLIENT_SECRET`
+   - `firebase functions:secrets:set GMAIL_REFRESH_TOKEN`
 3. Sign in as bootstrap email (`marc77014@gmail.com` by default).
 4. Open `/admin/access`, seed first invite, send invites to users.

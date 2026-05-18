@@ -4,12 +4,15 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getAuth } from 'firebase-admin/auth'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { defineSecret } from 'firebase-functions/params'
-import { Resend } from 'resend'
+import { google } from 'googleapis'
 import process from 'node:process'
+import { Buffer } from 'node:buffer'
 
 initializeApp()
 const db = getFirestore()
-const RESEND_API_KEY = defineSecret('RESEND_API_KEY')
+const GMAIL_CLIENT_ID = defineSecret('GMAIL_CLIENT_ID')
+const GMAIL_CLIENT_SECRET = defineSecret('GMAIL_CLIENT_SECRET')
+const GMAIL_REFRESH_TOKEN = defineSecret('GMAIL_REFRESH_TOKEN')
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase()
@@ -66,21 +69,52 @@ async function writeInvite({
 }
 
 async function sendInviteEmail(inviteEmail, token) {
-  const key = RESEND_API_KEY.value()
-  if (!key) {
-    return { delivered: false, message: 'Invite created; RESEND_API_KEY missing so email was not sent.' }
+  const clientId = GMAIL_CLIENT_ID.value()
+  const clientSecret = GMAIL_CLIENT_SECRET.value()
+  const refreshToken = GMAIL_REFRESH_TOKEN.value()
+  if (!clientId || !clientSecret || !refreshToken) {
+    return {
+      delivered: false,
+      message: 'Invite created; Gmail OAuth secrets are missing so email was not sent.',
+    }
   }
-  const resend = new Resend(key)
-  await resend.emails.send({
-    from: 'Red Domino Access <access@reddominoholdings.com>',
-    to: inviteEmail,
-    subject: 'Your Red Domino invite link',
-    html: `<p>You have been invited to Red Domino protected routes.</p><p><a href="${inviteLink(token)}">Accept invite</a></p>`,
+
+  const sender = process.env.GMAIL_FROM_EMAIL || 'marc77014@gmail.com'
+  const inviteUrl = inviteLink(token)
+  const subject = 'Your Red Domino invite link'
+  const html = [
+    '<p>You have been invited to Red Domino protected routes.</p>',
+    `<p><a href="${inviteUrl}">Accept invite</a></p>`,
+    '<p>If the link does not open, copy and paste this URL:</p>',
+    `<p>${inviteUrl}</p>`,
+  ].join('')
+
+  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret)
+  oauth2Client.setCredentials({ refresh_token: refreshToken })
+
+  const gmail = google.gmail({ version: 'v1', auth: oauth2Client })
+  const lines = [
+    `From: Red Domino Access <${sender}>`,
+    `To: ${inviteEmail}`,
+    `Subject: ${subject}`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/html; charset="UTF-8"',
+    '',
+    html,
+  ]
+  const raw = Buffer.from(lines.join('\r\n')).toString('base64url')
+
+  await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: { raw },
   })
+
   return { delivered: true, message: 'Invite email sent.' }
 }
 
-export const sendInvite = onCall({ secrets: [RESEND_API_KEY] }, async (request) => {
+export const sendInvite = onCall(
+  { secrets: [GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN] },
+  async (request) => {
   await assertAdmin(request.auth)
   const { email, role } = request.data || {}
   const result = await writeInvite({
@@ -96,9 +130,12 @@ export const sendInvite = onCall({ secrets: [RESEND_API_KEY] }, async (request) 
     email: result.email,
     token: result.token,
   }
-})
+  },
+)
 
-export const resendInvite = onCall({ secrets: [RESEND_API_KEY] }, async (request) => {
+export const resendInvite = onCall(
+  { secrets: [GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN] },
+  async (request) => {
   await assertAdmin(request.auth)
   const { email } = request.data || {}
   const result = await writeInvite({
@@ -109,7 +146,8 @@ export const resendInvite = onCall({ secrets: [RESEND_API_KEY] }, async (request
   })
   const delivery = await sendInviteEmail(result.email, result.token)
   return { ok: true, ...delivery, email: result.email }
-})
+  },
+)
 
 export const revokeInvite = onCall({}, async (request) => {
   await assertAdmin(request.auth)
@@ -131,13 +169,17 @@ export const revokeInvite = onCall({}, async (request) => {
 
 export const seedInitialInvite = onCall({}, async (request) => {
   await assertAdmin(request.auth)
-  const { email } = request.data || {}
+  const { email, sendEmail = false } = request.data || {}
   const result = await writeInvite({
     email: email || 'marc77014@gmail.com',
     invitedBy: request.auth.uid,
-    status: 'pending',
+    status: sendEmail ? 'sent' : 'pending',
   })
-  return { ok: true, message: `Seeded invite for ${result.email}` }
+  if (!sendEmail) {
+    return { ok: true, message: `Seeded invite for ${result.email}` }
+  }
+  const delivery = await sendInviteEmail(result.email, result.token)
+  return { ok: true, ...delivery, message: `Seeded invite for ${result.email}` }
 })
 
 export const bootstrapAdmin = onCall({}, async (request) => {

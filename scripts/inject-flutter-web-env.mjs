@@ -6,7 +6,7 @@
  * Use only browser-safe keys (Google HTTP referrer restrictions, HERE app creds, etc.).
  * Never commit real values under public/; CI injects into dist/ only.
  *
- * Server-only keys (e.g. Resend) are skipped unless INJECT_FLUTTER_WEB_INCLUDE_RESEND=true.
+ * Server-only keys are intentionally excluded from client env injection.
  */
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -27,15 +27,7 @@ const CLIENT_ENV_KEYS = [
   'APP_INVITE_BASE_URL',
 ]
 
-const includeResend = process.env.INJECT_FLUTTER_WEB_INCLUDE_RESEND === 'true'
-if (includeResend) {
-  console.warn(
-    'inject-flutter-web-env: RESEND_API_KEY will be embedded in the client bundle (public to all visitors). Prefer a backend for email.',
-  )
-}
-
-const optionalKeys = includeResend ? ['RESEND_API_KEY'] : []
-const allKeys = [...CLIENT_ENV_KEYS, ...optionalKeys]
+const allKeys = [...CLIENT_ENV_KEYS]
 
 function escapeEnvValue(value) {
   const s = String(value)

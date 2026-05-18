@@ -29,6 +29,7 @@ Keep collection prefixes explicit so rules, exports, and monitoring remain audit
 
 - Enable Firebase Authentication and Firestore for all app surfaces.
 - Enable Email link and Google providers (invite-only filtered by server-side checks).
+- Enable Gmail API (`gmail.googleapis.com`) for invite-email delivery from Cloud Functions.
 - Enable Generative Language / Veo-related APIs only for workloads that require them (Living Bible AI features).
 - Apply per-service quotas and alerting thresholds to avoid cross-app blast radius.
 

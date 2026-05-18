@@ -186,7 +186,7 @@ If embed URLs are cleared (`''`), both routes show setup copy and the **download
 
 **Optional URL flags on the embedded app** (e.g. **`testUrlExtraParams`** in `precisionPilotWebApp`): **`debugVerbose=1`** — extra successful fetch/XHR timing and slow resource hints (noisy). **`debugTrace=1`** — stack on each pointer/click (very noisy).
 
-**Flutter `assets/.env` (API keys for the embedded app):** Tracked files under **`public/precision-pilot*/app/assets/.env`** stay **comment-only** (no secrets in git). On **`npm run build`**, **`scripts/inject-flutter-web-env.mjs`** writes **`dist/precision-pilot*/app/assets/.env`** from environment variables — in GitHub Actions, from **repository secrets** / **variables** listed in **`.github/workflows/deploy-github-pages.yml`**. **Security:** anything in that file is a **public static asset**; anyone can download it. Use **browser-restricted** keys (Google HTTP referrers, HERE app limits, etc.). **Do not** put **Resend** or other **server-only** secrets into client `assets/.env` unless you accept full exposure — the workflow omits **`RESEND_API_KEY`** unless repository variable **`INJECT_FLUTTER_WEB_INCLUDE_RESEND`** is set to **`true`**. Prefer calling email APIs from a **backend**.
+**Flutter `assets/.env` (API keys for the embedded app):** Tracked files under **`public/precision-pilot*/app/assets/.env`** stay **comment-only** (no secrets in git). On **`npm run build`**, **`scripts/inject-flutter-web-env.mjs`** writes **`dist/precision-pilot*/app/assets/.env`** from environment variables — in GitHub Actions, from **repository secrets** / **variables** listed in **`.github/workflows/deploy-github-pages.yml`**. **Security:** anything in that file is a **public static asset**; anyone can download it. Use **browser-restricted** keys (Google HTTP referrers, HERE app limits, etc.). Server-only secrets (invite-email OAuth credentials, tokens, API secrets) are never injected into client `assets/.env`; keep them in Firebase Functions secrets.
 
 **After copying a new Flutter `build/web` into `public/precision-pilot*/app/`:** Do **not** ship the stock Flutter `index.html` (it omits viewport/SEO, may omit `assets/.env`, and must not hardcode a Maps API key). Restore the marketing wrappers: **`YOUR_GOOGLE_MAPS_WEB_API_KEY`** + **`<script async … loading=async>`**, correct **`<base href>`**, **viewport**, test-route **`noindex`**, branded **title/description**, and a **placeholder** **`assets/.env`**. Then run **`npm run build`** — **`verify-flutter-embed-assets.mjs`** fails the build if tracked files contain keys or Maps markup is wrong.
 
@@ -283,11 +283,22 @@ For secure-route gating (`/precision-pilot-test`, `/living-bible`, `/living-bibl
 1. Deploy functions + rules:
    - `npm run install:functions`
    - `npm run deploy:functions`
-2. Set Firebase Functions secret:
-   - `firebase functions:secrets:set RESEND_API_KEY`
+2. Set Firebase Functions Gmail secrets:
+   - `firebase functions:secrets:set GMAIL_CLIENT_ID`
+   - `firebase functions:secrets:set GMAIL_CLIENT_SECRET`
+   - `firebase functions:secrets:set GMAIL_REFRESH_TOKEN`
 3. Sign in as bootstrap email (`VITE_BOOTSTRAP_ADMIN_EMAIL`) and open `/admin/access`.
 4. Use **Send invite** for additional users; email links are generated via `sendInvite`.
 5. Users authenticate via invite magic-link or Google sign-in with the invited email only.
+
+### Gmail API OAuth setup (invite emails)
+
+1. In Google Cloud Console (`red-domino-precision-freight`), enable **Gmail API**.
+2. Configure OAuth consent screen and add your sender account (`marc77014@gmail.com`) as a test user if the app is in testing.
+3. Create OAuth client credentials (Desktop app is acceptable for token generation).
+4. Generate a refresh token with `https://www.googleapis.com/auth/gmail.send` scope for the sender mailbox.
+5. Save these in Firebase Functions secrets (`GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`).
+6. Optional sender override: set runtime env `GMAIL_FROM_EMAIL` (defaults to `marc77014@gmail.com`).
 
 ---
 
