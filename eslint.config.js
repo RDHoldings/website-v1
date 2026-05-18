@@ -16,6 +16,8 @@ export default [
       // Flutter web + CanvasKit bundles (third-party / generated; do not lint)
       'public/precision-pilot/**',
       'public/precision-pilot-test/**',
+      'public/living-bible/**',
+      'public/living-bible-test/**',
     ],
   },
   js.configs.recommended,

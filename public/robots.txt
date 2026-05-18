@@ -4,5 +4,7 @@ Allow: /
 
 # Pre-release QA shell (also sends noindex via HTML)
 Disallow: /precision-pilot-test
+Disallow: /living-bible
+Disallow: /living-bible-test
 
 Sitemap: https://reddominoholdings.com/sitemap.xml

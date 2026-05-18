@@ -28,6 +28,26 @@ export const SEO_COPY = {
     description:
       'Pre-release test environment for Precision Pilot. For internal QA only—not indexed by search engines.',
   },
+  livingBible: {
+    title: `Living Bible | ${SITE_NAME}`,
+    description:
+      'Living Bible web application experience embedded in the Red Domino ecosystem for scripture study and engagement.',
+  },
+  livingBibleTest: {
+    title: `Living Bible (pre-release test) | ${SITE_NAME}`,
+    description:
+      'Pre-release test environment for Living Bible. Internal QA route only and excluded from search indexing.',
+  },
+  accessRequest: {
+    title: `Access Request | ${SITE_NAME}`,
+    description:
+      'Invite-only authentication gateway for protected Red Domino routes.',
+  },
+  adminAccess: {
+    title: `Access Admin | ${SITE_NAME}`,
+    description:
+      'Administrative dashboard for approving or denying protected route access grants.',
+  },
   privacy: {
     title: `Privacy Policy | ${SITE_NAME}`,
     description:

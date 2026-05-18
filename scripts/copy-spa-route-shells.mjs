@@ -15,7 +15,17 @@ const root = join(__dirname, '..')
 const dist = join(root, 'dist')
 const mainIndex = join(dist, 'index.html')
 
-const ROUTES = ['precision-pilot', 'precision-pilot-test', 'privacy', 'terms']
+const ROUTES = [
+  'precision-pilot',
+  'precision-pilot-test',
+  'living-bible',
+  'living-bible-test',
+  'access',
+  'access-request',
+  'admin/access',
+  'privacy',
+  'terms',
+]
 
 if (!existsSync(mainIndex)) {
   console.error('copy-spa-route-shells: dist/index.html missing — run vite build first')
