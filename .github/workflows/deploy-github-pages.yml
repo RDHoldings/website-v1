@@ -139,7 +139,7 @@ jobs:
 
   deploy_firebase_backend:
     # Intentional complexity: functions/rules deploy is isolated so Pages deploy can proceed independently.
-    if: github.ref == 'refs/heads/main' && (vars.FIREBASE_PROJECT_ID != '' || vars.VITE_FIREBASE_PROJECT_ID != '') && secrets.FIREBASE_TOKEN != '' && secrets.GMAIL_CLIENT_ID != '' && secrets.GMAIL_CLIENT_SECRET != '' && secrets.GMAIL_REFRESH_TOKEN != ''
+    if: github.ref == 'refs/heads/main' && (vars.FIREBASE_PROJECT_ID != '' || vars.VITE_FIREBASE_PROJECT_ID != '')
     runs-on: ubuntu-latest
     env:
       FIREBASE_PROJECT_ID_RESOLVED: ${{ vars.FIREBASE_PROJECT_ID != '' && vars.FIREBASE_PROJECT_ID || vars.VITE_FIREBASE_PROJECT_ID }}
@@ -163,7 +163,31 @@ jobs:
         run: npm ci
         working-directory: functions
 
+      - name: Check backend deploy prerequisites
+        id: precheck
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+        run: |
+          set -e
+          missing=0
+          for key in FIREBASE_TOKEN GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET GMAIL_REFRESH_TOKEN; do
+            if [ -z "${!key}" ]; then
+              echo "::warning::Missing required secret: $key"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping Firebase backend deploy; Pages deploy remains unaffected."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Sync Firebase function secrets (Gmail OAuth)
+        if: steps.precheck.outputs.ready == 'true'
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
@@ -176,6 +200,7 @@ jobs:
           printf '%s' "$GMAIL_REFRESH_TOKEN" | firebase functions:secrets:set GMAIL_REFRESH_TOKEN --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
 
       - name: Deploy Firestore rules + functions
+        if: steps.precheck.outputs.ready == 'true'
         run: firebase deploy --project "$FIREBASE_PROJECT_ID_RESOLVED" --only firestore:rules,functions --non-interactive
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
