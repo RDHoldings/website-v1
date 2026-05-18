@@ -267,6 +267,28 @@ If you add variables later, prefix client-visible values with **`VITE_`** and do
 
 Optional **`VITE_SITE_URL`** (see **`.env.example`**) sets the canonical origin for SEO fallbacks in **`src/config/site.js`** when `window` is unavailable.
 
+For secure-route gating (`/precision-pilot-test`, `/living-bible`, `/living-bible-test`):
+
+- Enable Google Auth provider in Firebase Authentication.
+- Add at least one Firestore admin doc: **`admins/<uid>`** with `{ enabled: true }`.
+- User approvals live in **`access_grants/<uid>`** with `status: "approved"` (managed by `/admin/access` UI).
+- Invite-only model: invited emails are stored in **`invites/<normalizedEmailId>`** and must be
+  active (`pending`, `sent`, or `accepted`) for Google/magic-link sign-in.
+- Functions region defaults to `us-central1`; set **`VITE_FIREBASE_FUNCTIONS_REGION`** if different.
+- First admin bootstrap email can be configured with **`VITE_BOOTSTRAP_ADMIN_EMAIL`**
+  (defaults to `marc77014@gmail.com`).
+
+### Invite-only admin workflow
+
+1. Deploy functions + rules:
+   - `npm run install:functions`
+   - `npm run deploy:functions`
+2. Set Firebase Functions secret:
+   - `firebase functions:secrets:set RESEND_API_KEY`
+3. Sign in as bootstrap email (`VITE_BOOTSTRAP_ADMIN_EMAIL`) and open `/admin/access`.
+4. Use **Send invite** for additional users; email links are generated via `sendInvite`.
+5. Users authenticate via invite magic-link or Google sign-in with the invited email only.
+
 ---
 
 ## SEO & accessibility

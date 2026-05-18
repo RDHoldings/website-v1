@@ -7,6 +7,9 @@
  */
 import { initializeApp, getApps } from 'firebase/app'
 import { getAnalytics, isSupported } from 'firebase/analytics'
+import { getAuth, GoogleAuthProvider } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
+import { getFunctions } from 'firebase/functions'
 
 function readConfig() {
   const apiKey = import.meta.env.VITE_FIREBASE_API_KEY
@@ -25,6 +28,10 @@ function readConfig() {
 
 let appInstance
 let analyticsInstance
+let authInstance
+let dbInstance
+let googleProvider
+let functionsInstance
 
 export function getFirebaseApp() {
   if (typeof window === 'undefined') return null
@@ -40,6 +47,47 @@ export function getFirebaseApp() {
   }
   appInstance = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
   return appInstance
+}
+
+export function getFirebaseAuth() {
+  if (authInstance !== undefined) return authInstance
+  const app = getFirebaseApp()
+  if (!app) {
+    authInstance = null
+    return null
+  }
+  authInstance = getAuth(app)
+  return authInstance
+}
+
+export function getFirebaseDb() {
+  if (dbInstance !== undefined) return dbInstance
+  const app = getFirebaseApp()
+  if (!app) {
+    dbInstance = null
+    return null
+  }
+  dbInstance = getFirestore(app)
+  return dbInstance
+}
+
+export function getGoogleAuthProvider() {
+  if (googleProvider) return googleProvider
+  googleProvider = new GoogleAuthProvider()
+  googleProvider.setCustomParameters({ prompt: 'select_account' })
+  return googleProvider
+}
+
+export function getFirebaseFunctions() {
+  if (functionsInstance !== undefined) return functionsInstance
+  const app = getFirebaseApp()
+  if (!app) {
+    functionsInstance = null
+    return null
+  }
+  const region = import.meta.env.VITE_FIREBASE_FUNCTIONS_REGION?.trim() || 'us-central1'
+  functionsInstance = getFunctions(app, region)
+  return functionsInstance
 }
 
 /** Resolves after Analytics is ready or unsupported (null). */
@@ -61,3 +109,6 @@ export async function getFirebaseAnalytics() {
 
 void getFirebaseApp()
 void getFirebaseAnalytics()
+void getFirebaseAuth()
+void getFirebaseDb()
+void getFirebaseFunctions()
