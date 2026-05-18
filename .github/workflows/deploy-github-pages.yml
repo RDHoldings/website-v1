@@ -21,7 +21,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       # Grouped env keeps Build step readable while preserving all integration knobs.
       VITE_BASE_URL: ${{ vars.VITE_BASE_URL || '' }}
       VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY || '' }}
@@ -46,83 +45,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Android APKs: built from the private Flutter repo when FLUTTER_APP_CHECKOUT_TOKEN is set on this repo.
-      # Paths must match src/config/precisionPilot.js (PRECISION_PILOT_APK).
-      # Without the PAT, checkout of RDHoldings/precision-freight fails (anonymous HTTPS or GITHUB_TOKEN → 404).
-      # We then create empty placeholder .apk files so Vite + verify still succeed; set the secret for real builds.
-      - name: Configure Flutter APK build
-        id: flutter_apk
-        env:
-          FLUTTER_APP_CHECKOUT_TOKEN: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN }}
-        run: |
-          set -e
-          if [ -n "$FLUTTER_APP_CHECKOUT_TOKEN" ]; then
-            echo "build=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "build=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::FLUTTER_APP_CHECKOUT_TOKEN not set — using empty APK placeholders. Add a fine-grained PAT (Contents: Read on RDHoldings/precision-freight) as this repository secret to build real APKs."
-          fi
-
-      - name: Checkout Precision Pilot (Flutter)
-        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ vars.FLUTTER_APP_REPO || 'RDHoldings/precision-freight' }}
-          path: precision-pilot-app
-          token: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN }}
-          fetch-depth: 1
-
-      - name: Set up Java (Android)
-        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Set up Flutter
-        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Flutter pub get
-        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
-        working-directory: precision-pilot-app
-        run: flutter pub get
-
-      - name: Build Android APKs (release + debug)
-        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
-        working-directory: precision-pilot-app
-        run: |
-          set -e
-          flutter build apk --release
-          flutter build apk --debug
-
-      - name: Stage APKs into website public/
-        if: ${{ steps.flutter_apk.outputs.build == 'true' }}
-        run: |
-          set -e
-          mkdir -p public/precision-pilot/downloads public/precision-pilot-test/downloads
-          cp precision-pilot-app/build/app/outputs/flutter-apk/app-release.apk \
-            public/precision-pilot/downloads/precision-pilot-release.apk
-          cp precision-pilot-app/build/app/outputs/flutter-apk/app-debug.apk \
-            public/precision-pilot-test/downloads/precision-pilot-debug.apk
-          ls -la public/precision-pilot/downloads/
-          ls -la public/precision-pilot-test/downloads/
-
-      - name: Placeholder APKs when Flutter PAT is not configured
-        if: ${{ steps.flutter_apk.outputs.build != 'true' }}
-        run: |
-          set -e
-          mkdir -p public/precision-pilot/downloads public/precision-pilot-test/downloads
-          : > public/precision-pilot/downloads/precision-pilot-release.apk
-          : > public/precision-pilot-test/downloads/precision-pilot-debug.apk
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
           cache: npm
 
       - name: Install dependencies
@@ -132,32 +58,6 @@ jobs:
         run: npm run build
         # Vite copies public/ → dist/ (includes public/precision-pilot/** and public/precision-pilot-test/**)
         # For github.io project URLs only, set repo variable VITE_BASE_URL (e.g. /website-v1/) so iframe paths match.
-        # postbuild also rewrites Flutter embed <base href> to match (scripts/rewrite-flutter-embed-base-href.mjs).
-        env:
-          # Empty when unset — avoids odd string values in some runners; custom domain = leave unset (base '/')
-          VITE_BASE_URL: ${{ vars.VITE_BASE_URL || '' }}
-          # Firebase JS SDK (shell Analytics) — set repository Variables to match .env.example (VITE_FIREBASE_*)
-          VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY || '' }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN || '' }}
-          VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID || '' }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET || '' }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.VITE_FIREBASE_MESSAGING_SENDER_ID || '' }}
-          VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID || '' }}
-          VITE_FIREBASE_MEASUREMENT_ID: ${{ vars.VITE_FIREBASE_MEASUREMENT_ID || '' }}
-          # Maps JS in Flutter embed index.html (see scripts/inject-google-maps-key.mjs)
-          GOOGLE_MAPS_WEB_API_KEY: ${{ secrets.GOOGLE_MAPS_WEB_API_KEY }}
-          # Flutter web assets/.env — injected by scripts/inject-flutter-web-env.mjs (never commit values)
-          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
-          GOOGLE_CLOUD_VISION_API_KEY: ${{ secrets.GOOGLE_CLOUD_VISION_API_KEY }}
-          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-          HERE_API_KEY: ${{ secrets.HERE_API_KEY }}
-          HERE_APP_ID: ${{ secrets.HERE_APP_ID }}
-          ACCUWEATHER_API_KEY: ${{ secrets.ACCUWEATHER_API_KEY }}
-          EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
-          APP_INVITE_BASE_URL: ${{ vars.APP_INVITE_BASE_URL || '' }}
-          # Set to 'true' only if you accept exposing Resend in the client (not recommended)
-          INJECT_FLUTTER_WEB_INCLUDE_RESEND: ${{ vars.INJECT_FLUTTER_WEB_INCLUDE_RESEND || '' }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
 
       # GitHub Pages serves 404.html for unknown paths — same as index.html so React Router works on refresh
       - name: SPA fallback for client-side routes
@@ -213,14 +113,6 @@ jobs:
           }
           verify_pp_embed_index dist/precision-pilot/app/index.html "production Flutter embed"
           verify_pp_embed_index dist/precision-pilot-test/app/index.html "test Flutter embed"
-          for apk in \
-            dist/precision-pilot/downloads/precision-pilot-release.apk \
-            dist/precision-pilot-test/downloads/precision-pilot-debug.apk; do
-            if [ ! -f "$apk" ]; then
-              echo "::error::$apk missing (Android APK staging step failed?)"
-              exit 1
-            fi
-          done
           # Living Bible Expo embed verification: routed _expo/static assets under expected path prefix
           verify_lb_embed_index() {
             local f="$1"
@@ -272,7 +164,7 @@ jobs:
         working-directory: functions
 
       - name: Deploy Firestore rules + functions
-        run: firebase deploy --only firestore:rules,functions --non-interactive
+        run: firebase deploy --project "${{ vars.FIREBASE_PROJECT_ID }}" --only firestore:rules,functions --non-interactive
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           BOOTSTRAP_ADMIN_EMAIL: ${{ vars.VITE_BOOTSTRAP_ADMIN_EMAIL || 'marc77014@gmail.com' }}
