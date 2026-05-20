@@ -4,20 +4,23 @@ Use this runbook when invite emails from `/admin/access` are not sending.
 
 ## What is currently missing
 
-In `RDHoldings/website-v1`, these required GitHub secrets are missing:
+In `RDHoldings/website-v1`, verify with `gh secret list --repo RDHoldings/website-v1`.
+
+**Typically still required:**
 
 - `FIREBASE_TOKEN`
 - `GMAIL_CLIENT_SECRET`
 - `GMAIL_REFRESH_TOKEN`
 - `BOOTSTRAP_AUTOMATION_KEY`
 
-Present already:
+**Often present:**
 
 - `GMAIL_CLIENT_ID`
+- `FIREBASE_PROJECT_ID` (repository variable = `red-domino-precision-freight`)
 
-Required GitHub variable already present:
+**Legacy (remove if unused):** `RESEND_API_KEY`
 
-- `FIREBASE_PROJECT_ID=red-domino-precision-freight`
+Full step-by-step checklist: [RD Holdings Projects/docs/REMAINING_USER_ACTIONS.md](../../../RD%20Holdings%20Projects/docs/REMAINING_USER_ACTIONS.md)
 
 ## 1) Google Cloud OAuth setup
 

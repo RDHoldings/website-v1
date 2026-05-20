@@ -4,6 +4,8 @@ A production-oriented marketing site for **Red Domino Holdings**: responsive lan
 
 **Repository:** [github.com/RDHoldings/website-v1](https://github.com/RDHoldings/website-v1) (adjust if your remote differs)
 
+**Ecosystem setup (secrets, invites, DNS):** [RD Holdings Projects/docs/REMAINING_USER_ACTIONS.md](../RD%20Holdings%20Projects/docs/REMAINING_USER_ACTIONS.md)
+
 ---
 
 ## Table of contents

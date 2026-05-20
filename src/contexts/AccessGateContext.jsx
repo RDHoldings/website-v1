@@ -83,15 +83,16 @@ export function AccessGateProvider({ children }) {
   }, [])
 
   const verifyInviteForEmail = useCallback(async (email) => {
-    const db = getFirebaseDb()
-    if (!db) throw new Error('Firestore is not configured.')
+    const fns = getFirebaseFunctions()
+    if (!fns) throw new Error('Firebase Functions is not configured.')
     const normalized = normalizeInviteEmail(email)
     if (!normalized) throw new Error('A valid invite email is required.')
-    const snap = await getDoc(doc(db, 'invites', toInviteEmailId(normalized)))
-    if (!snap.exists()) throw new Error('No invite was found for this email.')
-    const data = snap.data()
+    const callable = httpsCallable(fns, 'verifyInvite')
+    const result = await callable({ email: normalized })
+    const data = result.data || {}
+    if (!data.ok) throw new Error('No invite was found for this email.')
     if (data.status === 'revoked') throw new Error('This invite has been revoked.')
-    return data
+    return { email: data.email || normalized, status: data.status }
   }, [])
 
   const signIn = useCallback(async () => {

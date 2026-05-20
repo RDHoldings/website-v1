@@ -23,7 +23,11 @@ service cloud.firestore {
     }
 
     match /invites/{inviteId} {
-      allow read, create, update, delete: if isAdmin();
+      allow read: if isAdmin()
+        || (signedIn()
+          && resource.data.email == request.auth.token.email
+          && resource.data.status != 'revoked');
+      allow create, update, delete: if isAdmin();
     }
   }
 }

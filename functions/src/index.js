@@ -211,6 +211,22 @@ export const bootstrapAdmin = onCall({}, async (request) => {
   return { ok: true, message: 'Bootstrap admin granted.' }
 })
 
+/** Pre-sign-in invite check (no token returned). */
+export const verifyInvite = onCall({}, async (request) => {
+  const email = normalizeEmail(request.data?.email)
+  if (!email) throw new HttpsError('invalid-argument', 'A valid email is required.')
+  const inviteId = inviteIdFromEmail(email)
+  const inviteSnap = await db.collection('invites').doc(inviteId).get()
+  if (!inviteSnap.exists) throw new HttpsError('permission-denied', 'No invite was found for this email.')
+  const invite = inviteSnap.data()
+  if (invite.status === 'revoked') throw new HttpsError('permission-denied', 'This invite has been revoked.')
+  return {
+    ok: true,
+    email: invite.email,
+    status: invite.status,
+  }
+})
+
 export const claimInvite = onCall({}, async (request) => {
   if (!request.auth?.uid) throw new HttpsError('unauthenticated', 'Authentication required.')
   const email = normalizeEmail(request.data?.email || request.auth.token?.email)
