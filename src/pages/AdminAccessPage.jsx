@@ -111,8 +111,8 @@ export function AdminAccessPage() {
     const fns = getFirebaseFunctions()
     if (!fns) return
     const callable = httpsCallable(fns, 'seedInitialInvite')
-    const result = await callable({ email: 'marc77014@gmail.com' })
-    setAdminMessage(result.data?.message || 'Seed invite created.')
+    const result = await callable({ email: 'marc77014@gmail.com', sendEmail: true })
+    setAdminMessage(result.data?.message || 'Seed invite created and email attempted.')
   }
 
   const sorted = useMemo(() => grantRows, [grantRows])

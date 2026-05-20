@@ -27,6 +27,10 @@ export default [
     languageOptions: { globals: globals.node },
   },
   {
+    files: ['functions/**/*.js', 'functions/**/*.mjs'],
+    languageOptions: { globals: globals.node },
+  },
+  {
     files: ['**/*.{js,jsx}'],
     ignores: ['vite.config.js'],
     plugins: {

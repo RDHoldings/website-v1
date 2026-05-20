@@ -13,6 +13,7 @@ const db = getFirestore()
 const GMAIL_CLIENT_ID = defineSecret('GMAIL_CLIENT_ID')
 const GMAIL_CLIENT_SECRET = defineSecret('GMAIL_CLIENT_SECRET')
 const GMAIL_REFRESH_TOKEN = defineSecret('GMAIL_REFRESH_TOKEN')
+const BOOTSTRAP_AUTOMATION_KEY = defineSecret('BOOTSTRAP_AUTOMATION_KEY')
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase()
@@ -167,12 +168,19 @@ export const revokeInvite = onCall({}, async (request) => {
   return { ok: true, message: 'Invite revoked.' }
 })
 
-export const seedInitialInvite = onCall({}, async (request) => {
-  await assertAdmin(request.auth)
+export const seedInitialInvite = onCall(
+  { secrets: [GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN, BOOTSTRAP_AUTOMATION_KEY] },
+  async (request) => {
+  const automationKey = String(request.data?.automationKey || '')
+  const expectedAutomationKey = BOOTSTRAP_AUTOMATION_KEY.value()
+  const fromAutomation = !request.auth?.uid && expectedAutomationKey && automationKey === expectedAutomationKey
+  if (!fromAutomation) {
+    await assertAdmin(request.auth)
+  }
   const { email, sendEmail = false } = request.data || {}
   const result = await writeInvite({
     email: email || 'marc77014@gmail.com',
-    invitedBy: request.auth.uid,
+    invitedBy: fromAutomation ? 'github-actions' : request.auth.uid,
     status: sendEmail ? 'sent' : 'pending',
   })
   if (!sendEmail) {
@@ -180,7 +188,8 @@ export const seedInitialInvite = onCall({}, async (request) => {
   }
   const delivery = await sendInviteEmail(result.email, result.token)
   return { ok: true, ...delivery, message: `Seeded invite for ${result.email}` }
-})
+  },
+)
 
 export const bootstrapAdmin = onCall({}, async (request) => {
   if (!request.auth?.uid) throw new HttpsError('unauthenticated', 'Authentication required.')

@@ -290,6 +290,7 @@ For secure-route gating (`/precision-pilot-test`, `/living-bible`, `/living-bibl
 3. Sign in as bootstrap email (`VITE_BOOTSTRAP_ADMIN_EMAIL`) and open `/admin/access`.
 4. Use **Send invite** for additional users; email links are generated via `sendInvite`.
 5. Users authenticate via invite magic-link or Google sign-in with the invited email only.
+6. Full operational runbook: [`docs/INVITE_EMAIL_SETUP.md`](docs/INVITE_EMAIL_SETUP.md)
 
 ### Gmail API OAuth setup (invite emails)
 

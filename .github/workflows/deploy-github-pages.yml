@@ -170,10 +170,11 @@ jobs:
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
           GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+          BOOTSTRAP_AUTOMATION_KEY: ${{ secrets.BOOTSTRAP_AUTOMATION_KEY }}
         run: |
           set -e
           missing=0
-          for key in FIREBASE_TOKEN GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET GMAIL_REFRESH_TOKEN; do
+          for key in FIREBASE_TOKEN GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET GMAIL_REFRESH_TOKEN BOOTSTRAP_AUTOMATION_KEY; do
             if [ -z "${!key}" ]; then
               echo "::warning::Missing required secret: $key"
               missing=1
@@ -193,11 +194,13 @@ jobs:
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
           GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+          BOOTSTRAP_AUTOMATION_KEY: ${{ secrets.BOOTSTRAP_AUTOMATION_KEY }}
         run: |
           set -e
           printf '%s' "$GMAIL_CLIENT_ID" | firebase functions:secrets:set GMAIL_CLIENT_ID --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
           printf '%s' "$GMAIL_CLIENT_SECRET" | firebase functions:secrets:set GMAIL_CLIENT_SECRET --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
           printf '%s' "$GMAIL_REFRESH_TOKEN" | firebase functions:secrets:set GMAIL_REFRESH_TOKEN --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
+          printf '%s' "$BOOTSTRAP_AUTOMATION_KEY" | firebase functions:secrets:set BOOTSTRAP_AUTOMATION_KEY --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
 
       - name: Deploy Firestore rules + functions
         if: steps.precheck.outputs.ready == 'true'
@@ -205,6 +208,17 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           BOOTSTRAP_ADMIN_EMAIL: ${{ vars.VITE_BOOTSTRAP_ADMIN_EMAIL || 'marc77014@gmail.com' }}
+
+      - name: Bootstrap initial invite email
+        if: steps.precheck.outputs.ready == 'true'
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          BOOTSTRAP_ADMIN_EMAIL: ${{ vars.VITE_BOOTSTRAP_ADMIN_EMAIL || 'marc77014@gmail.com' }}
+          BOOTSTRAP_AUTOMATION_KEY: ${{ secrets.BOOTSTRAP_AUTOMATION_KEY }}
+          VITE_FIREBASE_FUNCTIONS_REGION: ${{ vars.VITE_FIREBASE_FUNCTIONS_REGION || 'us-central1' }}
+        run: |
+          set -e
+          node functions/scripts/bootstrap-invite.mjs --project "$FIREBASE_PROJECT_ID_RESOLVED" --email "$BOOTSTRAP_ADMIN_EMAIL" --region "$VITE_FIREBASE_FUNCTIONS_REGION" --automation-key "$BOOTSTRAP_AUTOMATION_KEY"
 
   deploy:
     needs: build
