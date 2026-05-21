@@ -4,21 +4,20 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getAuth } from 'firebase-admin/auth'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { defineSecret } from 'firebase-functions/params'
-import { google } from 'googleapis'
 import process from 'node:process'
-import { Buffer } from 'node:buffer'
 import {
   normalizeEmail,
   inviteIdFromEmail,
   buildInviteLink,
   resolveInviteSiteBaseUrl,
 } from './inviteUtil.js'
+import {
+  GMAIL_SERVICE_ACCOUNT_JSON,
+  sendInviteEmailViaServiceAccount,
+} from './gmailServiceAccount.js'
 
 initializeApp()
 const db = getFirestore()
-const GMAIL_CLIENT_ID = defineSecret('GMAIL_CLIENT_ID')
-const GMAIL_CLIENT_SECRET = defineSecret('GMAIL_CLIENT_SECRET')
-const GMAIL_REFRESH_TOKEN = defineSecret('GMAIL_REFRESH_TOKEN')
 const BOOTSTRAP_AUTOMATION_KEY = defineSecret('BOOTSTRAP_AUTOMATION_KEY')
 
 async function assertAdmin(auth) {
@@ -67,18 +66,7 @@ async function writeInvite({
   return { inviteId, token, email: normalized }
 }
 
-async function sendInviteEmail(inviteEmail, token) {
-  const clientId = GMAIL_CLIENT_ID.value()
-  const clientSecret = GMAIL_CLIENT_SECRET.value()
-  const refreshToken = GMAIL_REFRESH_TOKEN.value()
-  if (!clientId || !clientSecret || !refreshToken) {
-    return {
-      delivered: false,
-      message: 'Invite created; Gmail OAuth secrets are missing so email was not sent.',
-    }
-  }
-
-  const sender = process.env.GMAIL_FROM_EMAIL || 'marc77014@gmail.com'
+function inviteEmailContent(token) {
   const inviteUrl = inviteLink(token)
   const subject = 'Your Red Domino invite link'
   const html = [
@@ -87,32 +75,19 @@ async function sendInviteEmail(inviteEmail, token) {
     '<p>If the link does not open, copy and paste this URL:</p>',
     `<p>${inviteUrl}</p>`,
   ].join('')
-
-  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret)
-  oauth2Client.setCredentials({ refresh_token: refreshToken })
-
-  const gmail = google.gmail({ version: 'v1', auth: oauth2Client })
-  const lines = [
-    `From: Red Domino Access <${sender}>`,
-    `To: ${inviteEmail}`,
-    `Subject: ${subject}`,
-    'MIME-Version: 1.0',
-    'Content-Type: text/html; charset="UTF-8"',
-    '',
-    html,
-  ]
-  const raw = Buffer.from(lines.join('\r\n')).toString('base64url')
-
-  await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw },
-  })
-
-  return { delivered: true, message: 'Invite email sent.' }
+  return { subject, html }
 }
 
+async function sendInviteEmail(inviteEmail, token) {
+  const { subject, html } = inviteEmailContent(token)
+  return sendInviteEmailViaServiceAccount(inviteEmail, subject, html)
+}
+
+/** Workspace SA is primary; OAuth secrets optional when all three are configured in Functions. */
+const inviteEmailSecrets = [GMAIL_SERVICE_ACCOUNT_JSON]
+
 export const sendInvite = onCall(
-  { secrets: [GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN] },
+  { secrets: inviteEmailSecrets },
   async (request) => {
   await assertAdmin(request.auth)
   const { email, role } = request.data || {}
@@ -133,7 +108,7 @@ export const sendInvite = onCall(
 )
 
 export const resendInvite = onCall(
-  { secrets: [GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN] },
+  { secrets: inviteEmailSecrets },
   async (request) => {
   await assertAdmin(request.auth)
   const { email } = request.data || {}
@@ -167,11 +142,12 @@ export const revokeInvite = onCall({}, async (request) => {
 })
 
 export const seedInitialInvite = onCall(
-  { secrets: [GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN, BOOTSTRAP_AUTOMATION_KEY] },
+  { secrets: [...inviteEmailSecrets, BOOTSTRAP_AUTOMATION_KEY] },
   async (request) => {
-  const automationKey = String(request.data?.automationKey || '')
-  const expectedAutomationKey = BOOTSTRAP_AUTOMATION_KEY.value()
-  const fromAutomation = !request.auth?.uid && expectedAutomationKey && automationKey === expectedAutomationKey
+  const automationKey = String(request.data?.automationKey || '').trim()
+  const expectedAutomationKey = String(BOOTSTRAP_AUTOMATION_KEY.value() || '').trim()
+  const fromAutomation =
+    !request.auth?.uid && expectedAutomationKey.length > 0 && automationKey === expectedAutomationKey
   if (!fromAutomation) {
     await assertAdmin(request.auth)
   }

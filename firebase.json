@@ -5,6 +5,7 @@
   "functions": [
     {
       "source": "functions",
+      "codebase": "website",
       "runtime": "nodejs20"
     }
   ],

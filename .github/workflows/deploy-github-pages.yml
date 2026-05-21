@@ -173,41 +173,62 @@ jobs:
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
           GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+          GMAIL_SERVICE_ACCOUNT_JSON: ${{ secrets.GMAIL_SERVICE_ACCOUNT_JSON }}
           BOOTSTRAP_AUTOMATION_KEY: ${{ secrets.BOOTSTRAP_AUTOMATION_KEY }}
         run: |
           set -e
           missing=0
-          for key in FIREBASE_TOKEN GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET GMAIL_REFRESH_TOKEN BOOTSTRAP_AUTOMATION_KEY; do
+          for key in FIREBASE_TOKEN BOOTSTRAP_AUTOMATION_KEY; do
             if [ -z "${!key}" ]; then
               echo "::warning::Missing required secret: $key"
               missing=1
             fi
           done
+          oauth_ok=0
+          if [ -n "$GMAIL_CLIENT_ID" ] && [ -n "$GMAIL_CLIENT_SECRET" ] && [ -n "$GMAIL_REFRESH_TOKEN" ]; then
+            oauth_ok=1
+          fi
+          sa_ok=0
+          if [ -n "$GMAIL_SERVICE_ACCOUNT_JSON" ]; then
+            sa_ok=1
+          fi
+          if [ "$oauth_ok" -eq 0 ] && [ "$sa_ok" -eq 0 ]; then
+            echo "::warning::Missing Gmail delivery: set OAuth trio or GMAIL_SERVICE_ACCOUNT_JSON"
+            missing=1
+          fi
           if [ "$missing" -eq 1 ]; then
             echo "ready=false" >> "$GITHUB_OUTPUT"
             echo "Skipping Firebase backend deploy; Pages deploy remains unaffected."
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "oauth_ok=$oauth_ok" >> "$GITHUB_OUTPUT"
+            echo "sa_ok=$sa_ok" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Sync Firebase function secrets (Gmail OAuth)
+      - name: Sync Firebase function secrets (Gmail)
         if: steps.precheck.outputs.ready == 'true'
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
           GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+          GMAIL_SERVICE_ACCOUNT_JSON: ${{ secrets.GMAIL_SERVICE_ACCOUNT_JSON }}
           BOOTSTRAP_AUTOMATION_KEY: ${{ secrets.BOOTSTRAP_AUTOMATION_KEY }}
         run: |
           set -e
-          printf '%s' "$GMAIL_CLIENT_ID" | firebase functions:secrets:set GMAIL_CLIENT_ID --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
-          printf '%s' "$GMAIL_CLIENT_SECRET" | firebase functions:secrets:set GMAIL_CLIENT_SECRET --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
-          printf '%s' "$GMAIL_REFRESH_TOKEN" | firebase functions:secrets:set GMAIL_REFRESH_TOKEN --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
+          if [ "${{ steps.precheck.outputs.oauth_ok }}" = "1" ]; then
+            printf '%s' "$GMAIL_CLIENT_ID" | firebase functions:secrets:set GMAIL_CLIENT_ID --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
+            printf '%s' "$GMAIL_CLIENT_SECRET" | firebase functions:secrets:set GMAIL_CLIENT_SECRET --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
+            printf '%s' "$GMAIL_REFRESH_TOKEN" | firebase functions:secrets:set GMAIL_REFRESH_TOKEN --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
+          fi
+          if [ "${{ steps.precheck.outputs.sa_ok }}" = "1" ]; then
+            printf '%s' "$GMAIL_SERVICE_ACCOUNT_JSON" | firebase functions:secrets:set GMAIL_SERVICE_ACCOUNT_JSON --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
+          fi
           printf '%s' "$BOOTSTRAP_AUTOMATION_KEY" | firebase functions:secrets:set BOOTSTRAP_AUTOMATION_KEY --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
 
       - name: Deploy Firestore rules + functions
         if: steps.precheck.outputs.ready == 'true'
-        run: firebase deploy --project "$FIREBASE_PROJECT_ID_RESOLVED" --only firestore:rules,functions --non-interactive
+        run: firebase deploy --project "$FIREBASE_PROJECT_ID_RESOLVED" --only firestore:rules,functions:website --non-interactive
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           BOOTSTRAP_ADMIN_EMAIL: ${{ vars.VITE_BOOTSTRAP_ADMIN_EMAIL || 'marc77014@gmail.com' }}

@@ -7,17 +7,18 @@ Use this runbook when invite emails from `/admin/access` are not sending.
 **Last audited:** 2026-05-20 (`gh secret list` / `gh variable list` on
 `RDHoldings/website-v1`)
 
-**Missing secrets:**
+**Missing secrets (CI backend deploy):**
 
-- `FIREBASE_TOKEN` — CI `firebase deploy`
-- `GMAIL_CLIENT_SECRET` — Gmail OAuth
-- `GMAIL_REFRESH_TOKEN` — send as `marc77014@gmail.com`
-- `BOOTSTRAP_AUTOMATION_KEY` — post-deploy seed invite in CI
+- `FIREBASE_TOKEN` — run `firebase login:ci` locally, then `gh secret set FIREBASE_TOKEN --repo RDHoldings/website-v1`
 
-**Present:**
+**Present (invite email via Workspace service account):**
 
-- `GMAIL_CLIENT_ID`
+- `GMAIL_SERVICE_ACCOUNT_JSON` — same mailer as Precision Pilot (`support@reddominnoholdings.com`)
+- `BOOTSTRAP_AUTOMATION_KEY`
+- `GMAIL_CLIENT_ID` (optional; OAuth path not required when SA JSON is set)
 - `FIREBASE_PROJECT_ID` (variable) = `red-domino-precision-freight`
+
+**Optional OAuth (personal Gmail sender):** `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`
 
 **Legacy Resend (remove after Gmail verified):** If `RESEND_API_KEY` still exists in GitHub Actions secrets and invite email works via Gmail, delete it:
 
