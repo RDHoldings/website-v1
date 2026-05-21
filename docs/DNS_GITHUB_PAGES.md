@@ -1,5 +1,18 @@
 # DNS for GitHub Pages (RDHoldings / website-v1)
 
+## Apex HTTPS checklist (user actions at registrar)
+
+1. **Apex (`@`)** — GitHub Pages apex uses **A** records (not CNAME on root):
+   - `185.199.108.153`
+   - `185.199.109.153`
+   - `185.199.110.153`
+   - `185.199.111.153`
+2. **`www`** — **CNAME** → `rdholdings.github.io` (see section below).
+3. GitHub repo **Settings → Pages** → Custom domain: `www.reddominoholdings.com` (or apex if using apex-only).
+4. Enable **Enforce HTTPS** after DNS propagates (can take up to 24h).
+5. Verify: `curl -sI https://reddominoholdings.com | findstr /i "HTTP location"`
+6. Remove conflicting Squarespace defaults that point apex to parking servers.
+
 Official reference: [Managing a custom domain for your GitHub Pages site](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site) and [Troubleshooting custom domains](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/troubleshooting-custom-domains-and-github-pages).
 
 ---

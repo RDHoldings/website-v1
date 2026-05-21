@@ -7,6 +7,12 @@ import { defineSecret } from 'firebase-functions/params'
 import { google } from 'googleapis'
 import process from 'node:process'
 import { Buffer } from 'node:buffer'
+import {
+  normalizeEmail,
+  inviteIdFromEmail,
+  buildInviteLink,
+  resolveInviteSiteBaseUrl,
+} from './inviteUtil.js'
 
 initializeApp()
 const db = getFirestore()
@@ -14,14 +20,6 @@ const GMAIL_CLIENT_ID = defineSecret('GMAIL_CLIENT_ID')
 const GMAIL_CLIENT_SECRET = defineSecret('GMAIL_CLIENT_SECRET')
 const GMAIL_REFRESH_TOKEN = defineSecret('GMAIL_REFRESH_TOKEN')
 const BOOTSTRAP_AUTOMATION_KEY = defineSecret('BOOTSTRAP_AUTOMATION_KEY')
-
-function normalizeEmail(email) {
-  return String(email || '').trim().toLowerCase()
-}
-
-function inviteIdFromEmail(email) {
-  return normalizeEmail(email).replace(/[^a-z0-9]/g, '_')
-}
 
 async function assertAdmin(auth) {
   if (!auth?.uid) throw new HttpsError('unauthenticated', 'Authentication required.')
@@ -32,7 +30,7 @@ async function assertAdmin(auth) {
 }
 
 function inviteLink(token) {
-  return `https://reddominoholdings.com/access?invite=${encodeURIComponent(token)}`
+  return buildInviteLink(resolveInviteSiteBaseUrl(), token)
 }
 
 async function writeInvite({

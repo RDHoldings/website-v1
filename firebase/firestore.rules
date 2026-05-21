@@ -11,6 +11,14 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.enabled != false;
     }
 
+    function isBibleCollection(collectionId) {
+      return collectionId.matches('bible_.*');
+    }
+
+    function isPrecisionCollection(collectionId) {
+      return collectionId.matches('precision_.*');
+    }
+
     match /admins/{uid} {
       allow read: if signedIn() && request.auth.uid == uid;
       allow create, update, delete: if isAdmin();
@@ -28,6 +36,24 @@ service cloud.firestore {
           && resource.data.email == request.auth.token.email
           && resource.data.status != 'revoked');
       allow create, update, delete: if isAdmin();
+    }
+
+    // Living Bible domain collections (bible_*)
+    match /{collectionId}/{docId} {
+      allow read: if isBibleCollection(collectionId)
+        && signedIn()
+        && (resource == null || resource.data.uid == request.auth.uid);
+      allow create: if isBibleCollection(collectionId)
+        && signedIn()
+        && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isBibleCollection(collectionId)
+        && signedIn()
+        && resource.data.uid == request.auth.uid;
+    }
+
+    // Precision Freight domain collections (precision_*)
+    match /{collectionId}/{docId} {
+      allow read, write: if isPrecisionCollection(collectionId) && signedIn();
     }
   }
 }

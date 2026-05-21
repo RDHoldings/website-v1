@@ -25,6 +25,8 @@ const ROUTES = [
   'admin/access',
   'privacy',
   'terms',
+  'dmca',
+  'legal',
 ]
 
 if (!existsSync(mainIndex)) {

@@ -1,10 +1,12 @@
 export const SECRET_ROUTE_KEYS = {
+  precisionPilot: 'precisionPilot',
   precisionPilotTest: 'precisionPilotTest',
   livingBible: 'livingBible',
   livingBibleTest: 'livingBibleTest',
 }
 
 export const SECRET_ROUTE_PATHS = {
+  [SECRET_ROUTE_KEYS.precisionPilot]: '/precision-pilot',
   [SECRET_ROUTE_KEYS.precisionPilotTest]: '/precision-pilot-test',
   [SECRET_ROUTE_KEYS.livingBible]: '/living-bible',
   [SECRET_ROUTE_KEYS.livingBibleTest]: '/living-bible-test',

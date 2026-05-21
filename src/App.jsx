@@ -11,6 +11,7 @@ import { LivingBibleWebPage } from './pages/LivingBibleWebPage'
 import { PrecisionPilotWebPage } from './pages/PrecisionPilotWebPage'
 import { PrivacyPolicy } from './pages/PrivacyPolicy'
 import { TermsOfService } from './pages/TermsOfService'
+import { DmcaPolicy } from './pages/DmcaPolicy'
 
 function App() {
   return (
@@ -22,7 +23,11 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route
           path="/precision-pilot"
-          element={<PrecisionPilotWebPage variant="production" />}
+          element={
+            <AccessGateLayout>
+              <PrecisionPilotWebPage variant="production" />
+            </AccessGateLayout>
+          }
         />
         <Route
           path="/precision-pilot-test"
@@ -53,6 +58,8 @@ function App() {
         <Route path="/admin/access" element={<AdminAccessPage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/dmca" element={<DmcaPolicy />} />
+        <Route path="/legal" element={<DmcaPolicy />} />
       </Routes>
     </AccessGateProvider>
   )

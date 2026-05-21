@@ -19,7 +19,13 @@ Use this runbook when invite emails from `/admin/access` are not sending.
 - `GMAIL_CLIENT_ID`
 - `FIREBASE_PROJECT_ID` (variable) = `red-domino-precision-freight`
 
-**Legacy (remove if unused):** `RESEND_API_KEY` (still in repo secrets)
+**Legacy Resend (remove after Gmail verified):** If `RESEND_API_KEY` still exists in GitHub Actions secrets and invite email works via Gmail, delete it:
+
+```bash
+gh secret delete RESEND_API_KEY --repo RDHoldings/website-v1
+```
+
+(Requires `gh` auth with admin access to the repository. Agents do not delete secrets automatically.)
 
 Until all four missing secrets exist, job `deploy_firebase_backend` warns and
 **skips** rules/functions deploy and bootstrap email (run `26196583322`

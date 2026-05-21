@@ -6,6 +6,7 @@
  * that must stay server-only here; the web API key is public by design (restrict in GCP).
  */
 import { initializeApp, getApps } from 'firebase/app'
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 import { getAnalytics, isSupported } from 'firebase/analytics'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
@@ -32,6 +33,36 @@ let authInstance
 let dbInstance
 let googleProvider
 let functionsInstance
+let appCheckInitialized = false
+
+function shouldUseAppCheck() {
+  return import.meta.env.VITE_USE_APP_CHECK === 'true'
+}
+
+/** App Check for the marketing shell (see docs/APP_CHECK_WEB.md). */
+export function initFirebaseAppCheck() {
+  if (appCheckInitialized || !shouldUseAppCheck()) return
+  const app = getFirebaseApp()
+  if (!app) return
+  const siteKey = import.meta.env.VITE_FIREBASE_APP_CHECK_RECAPTCHA_SITE_KEY?.trim()
+  const debugToken = import.meta.env.VITE_FIREBASE_APP_CHECK_DEBUG_TOKEN?.trim()
+  if (import.meta.env.DEV && debugToken && typeof self !== 'undefined') {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken
+  }
+  if (!siteKey) {
+    if (import.meta.env.DEV) {
+      console.info(
+        'Firebase App Check: VITE_USE_APP_CHECK is true but VITE_FIREBASE_APP_CHECK_RECAPTCHA_SITE_KEY is missing — skipping.',
+      )
+    }
+    return
+  }
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(siteKey),
+    isTokenAutoRefreshEnabled: true,
+  })
+  appCheckInitialized = true
+}
 
 export function getFirebaseApp() {
   if (typeof window === 'undefined') return null
@@ -46,6 +77,7 @@ export function getFirebaseApp() {
     return null
   }
   appInstance = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
+  initFirebaseAppCheck()
   return appInstance
 }
 
