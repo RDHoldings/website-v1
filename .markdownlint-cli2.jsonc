@@ -1,3 +1,7 @@
 {
-  "globs": ["**/*.md", "#node_modules", "#public"]
+  "globs": [
+    "README.md",
+    "PROMPT_MASTER_PLAN.md",
+    "docs/**/*.md"
+  ]
 }
