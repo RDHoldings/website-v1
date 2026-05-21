@@ -1,0 +1,7 @@
+{
+  "globs": [
+    "README.md",
+    "PROMPT_MASTER_PLAN.md",
+    "docs/**/*.md"
+  ]
+}
