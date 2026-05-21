@@ -1,24 +1,29 @@
-# Invite Email Setup (marc77014@gmail.com)
+# Invite Email Setup (`marc77014@gmail.com`)
 
 Use this runbook when invite emails from `/admin/access` are not sending.
 
 ## What is currently missing
 
-In `RDHoldings/website-v1`, verify with `gh secret list --repo RDHoldings/website-v1`.
+**Last audited:** 2026-05-20 (`gh secret list` / `gh variable list` on
+`RDHoldings/website-v1`)
 
-**Typically still required:**
+**Missing secrets:**
 
-- `FIREBASE_TOKEN`
-- `GMAIL_CLIENT_SECRET`
-- `GMAIL_REFRESH_TOKEN`
-- `BOOTSTRAP_AUTOMATION_KEY`
+- `FIREBASE_TOKEN` — CI `firebase deploy`
+- `GMAIL_CLIENT_SECRET` — Gmail OAuth
+- `GMAIL_REFRESH_TOKEN` — send as `marc77014@gmail.com`
+- `BOOTSTRAP_AUTOMATION_KEY` — post-deploy seed invite in CI
 
-**Often present:**
+**Present:**
 
 - `GMAIL_CLIENT_ID`
-- `FIREBASE_PROJECT_ID` (repository variable = `red-domino-precision-freight`)
+- `FIREBASE_PROJECT_ID` (variable) = `red-domino-precision-freight`
 
-**Legacy (remove if unused):** `RESEND_API_KEY`
+**Legacy (remove if unused):** `RESEND_API_KEY` (still in repo secrets)
+
+Until all four missing secrets exist, job `deploy_firebase_backend` warns and
+**skips** rules/functions deploy and bootstrap email (run `26196583322`
+precheck).
 
 Full step-by-step checklist: [RD Holdings Projects/docs/REMAINING_USER_ACTIONS.md](../../../RD%20Holdings%20Projects/docs/REMAINING_USER_ACTIONS.md)
 
@@ -30,7 +35,7 @@ Full step-by-step checklist: [RD Holdings Projects/docs/REMAINING_USER_ACTIONS.m
    - App type: External (or Internal if applicable).
    - Add `marc77014@gmail.com` as a test user when in testing mode.
 4. Create OAuth client credentials (`APIs & Services` -> `Credentials`):
-   - Client type can be **Desktop app** (simplest for refresh token generation) or **Web application**.
+   - Client type: **Desktop app** (simplest for refresh token) or **Web application**.
    - Save the client ID and client secret.
 
 ## 2) Generate Gmail refresh token
@@ -87,7 +92,7 @@ If all required secrets exist, invite email automation should run in CI.
 1. Open the website and sign in as `marc77014@gmail.com`.
 2. Open `/admin/access`.
 3. If needed, bootstrap admin from the app flow (calls `bootstrapAdmin`).
-4. Click **Seed marc77014@gmail.com** (now sends email path).
+4. Click **Seed** for `marc77014@gmail.com` (sends email).
 5. Use **Send invite** for additional users.
 
 ## 6) Local fallback commands (optional)
@@ -95,10 +100,15 @@ If all required secrets exist, invite email automation should run in CI.
 If you are authenticated locally and need to sync function secrets manually:
 
 ```bash
-npx -y firebase-tools@latest functions:secrets:set GMAIL_CLIENT_ID --project red-domino-precision-freight
-npx -y firebase-tools@latest functions:secrets:set GMAIL_CLIENT_SECRET --project red-domino-precision-freight
-npx -y firebase-tools@latest functions:secrets:set GMAIL_REFRESH_TOKEN --project red-domino-precision-freight
-npx -y firebase-tools@latest functions:secrets:set BOOTSTRAP_AUTOMATION_KEY --project red-domino-precision-freight
+PROJECT=red-domino-precision-freight
+npx -y firebase-tools@latest functions:secrets:set GMAIL_CLIENT_ID \
+  --project "$PROJECT" --non-interactive
+npx -y firebase-tools@latest functions:secrets:set GMAIL_CLIENT_SECRET \
+  --project "$PROJECT" --non-interactive
+npx -y firebase-tools@latest functions:secrets:set GMAIL_REFRESH_TOKEN \
+  --project "$PROJECT" --non-interactive
+npx -y firebase-tools@latest functions:secrets:set BOOTSTRAP_AUTOMATION_KEY \
+  --project "$PROJECT" --non-interactive
 ```
 
 Then deploy:
