@@ -1,0 +1,6 @@
+{
+  "globs": [
+    "README.md",
+    "docs/**/*.md"
+  ]
+}
