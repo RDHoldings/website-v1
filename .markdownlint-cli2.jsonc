@@ -1,0 +1,10 @@
+{
+  "globs": [
+    "README.md",
+    "PROMPT_MASTER_PLAN.md",
+    "docs/**/*.md",
+    "public/precision-pilot/README.md",
+    "public/precision-pilot-test/README.md",
+    "public/downloads/precision-pilot/README.md"
+  ]
+}
