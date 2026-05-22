@@ -169,7 +169,6 @@ jobs:
       - name: Check backend deploy prerequisites
         id: precheck
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
           GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
@@ -178,22 +177,22 @@ jobs:
         run: |
           set -e
           missing=0
-          for key in FIREBASE_TOKEN BOOTSTRAP_AUTOMATION_KEY; do
-            if [ -z "${!key}" ]; then
-              echo "::warning::Missing required secret: $key"
-              missing=1
-            fi
-          done
+          if [ -z "$BOOTSTRAP_AUTOMATION_KEY" ]; then
+            echo "::warning::Missing required secret: BOOTSTRAP_AUTOMATION_KEY"
+            missing=1
+          fi
           oauth_ok=0
           if [ -n "$GMAIL_CLIENT_ID" ] && [ -n "$GMAIL_CLIENT_SECRET" ] && [ -n "$GMAIL_REFRESH_TOKEN" ]; then
             oauth_ok=1
           fi
           sa_ok=0
-          if [ -n "$GMAIL_SERVICE_ACCOUNT_JSON" ]; then
+          if printf '%s' "$GMAIL_SERVICE_ACCOUNT_JSON" | grep -q '"type"[[:space:]]*:[[:space:]]*"service_account"'; then
             sa_ok=1
+          elif [ -n "$GMAIL_SERVICE_ACCOUNT_JSON" ]; then
+            echo "::warning::GMAIL_SERVICE_ACCOUNT_JSON is set but does not look like service account JSON"
           fi
           if [ "$oauth_ok" -eq 0 ] && [ "$sa_ok" -eq 0 ]; then
-            echo "::warning::Missing Gmail delivery: set OAuth trio or GMAIL_SERVICE_ACCOUNT_JSON"
+            echo "::warning::Missing Gmail delivery: set OAuth trio or valid GMAIL_SERVICE_ACCOUNT_JSON"
             missing=1
           fi
           if [ "$missing" -eq 1 ]; then
@@ -205,10 +204,18 @@ jobs:
             echo "sa_ok=$sa_ok" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Write Firebase service account key
+        if: steps.precheck.outputs.ready == 'true' && steps.precheck.outputs.sa_ok == '1'
+        env:
+          GMAIL_SERVICE_ACCOUNT_JSON: ${{ secrets.GMAIL_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -e
+          printf '%s' "$GMAIL_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/firebase-sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+
       - name: Sync Firebase function secrets (Gmail)
         if: steps.precheck.outputs.ready == 'true'
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
           GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
@@ -230,13 +237,11 @@ jobs:
         if: steps.precheck.outputs.ready == 'true'
         run: firebase deploy --project "$FIREBASE_PROJECT_ID_RESOLVED" --only firestore:rules,functions:website --non-interactive
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           BOOTSTRAP_ADMIN_EMAIL: ${{ vars.VITE_BOOTSTRAP_ADMIN_EMAIL || 'marc77014@gmail.com' }}
 
       - name: Bootstrap initial invite email
         if: steps.precheck.outputs.ready == 'true'
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           BOOTSTRAP_ADMIN_EMAIL: ${{ vars.VITE_BOOTSTRAP_ADMIN_EMAIL || 'marc77014@gmail.com' }}
           BOOTSTRAP_AUTOMATION_KEY: ${{ secrets.BOOTSTRAP_AUTOMATION_KEY }}
           VITE_FIREBASE_FUNCTIONS_REGION: ${{ vars.VITE_FIREBASE_FUNCTIONS_REGION || 'us-central1' }}
