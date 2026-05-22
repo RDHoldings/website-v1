@@ -1,4 +1,5 @@
 {
+  "markdownlint.cli2ConfigFile": ".markdownlint-cli2.jsonc",
   "markdown.preview.breaks": true,
   "markdown.preview.linkify": true,
   "markdown.preview.typographer": true,
