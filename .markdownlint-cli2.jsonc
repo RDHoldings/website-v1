@@ -7,7 +7,6 @@
     "public/precision-pilot-test/README.md",
     "public/downloads/precision-pilot/README.md",
     "#**/node_modules",
-    "#**/public",
     "#dist"
   ]
 }
