@@ -215,6 +215,7 @@ jobs:
 
       - name: Sync Firebase function secrets (Gmail)
         if: steps.precheck.outputs.ready == 'true'
+        continue-on-error: true
         env:
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
@@ -222,16 +223,19 @@ jobs:
           GMAIL_SERVICE_ACCOUNT_JSON: ${{ secrets.GMAIL_SERVICE_ACCOUNT_JSON }}
           BOOTSTRAP_AUTOMATION_KEY: ${{ secrets.BOOTSTRAP_AUTOMATION_KEY }}
         run: |
-          set -e
+          sync_secret() {
+            printf '%s' "$2" | firebase functions:secrets:set "$1" --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file - \
+              || echo "::warning::Could not sync secret $1 (using existing Firebase version)."
+          }
           if [ "${{ steps.precheck.outputs.oauth_ok }}" = "1" ]; then
-            printf '%s' "$GMAIL_CLIENT_ID" | firebase functions:secrets:set GMAIL_CLIENT_ID --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
-            printf '%s' "$GMAIL_CLIENT_SECRET" | firebase functions:secrets:set GMAIL_CLIENT_SECRET --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
-            printf '%s' "$GMAIL_REFRESH_TOKEN" | firebase functions:secrets:set GMAIL_REFRESH_TOKEN --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
+            sync_secret GMAIL_CLIENT_ID "$GMAIL_CLIENT_ID"
+            sync_secret GMAIL_CLIENT_SECRET "$GMAIL_CLIENT_SECRET"
+            sync_secret GMAIL_REFRESH_TOKEN "$GMAIL_REFRESH_TOKEN"
           fi
           if [ "${{ steps.precheck.outputs.sa_ok }}" = "1" ]; then
-            printf '%s' "$GMAIL_SERVICE_ACCOUNT_JSON" | firebase functions:secrets:set GMAIL_SERVICE_ACCOUNT_JSON --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
+            sync_secret GMAIL_SERVICE_ACCOUNT_JSON "$GMAIL_SERVICE_ACCOUNT_JSON"
           fi
-          printf '%s' "$BOOTSTRAP_AUTOMATION_KEY" | firebase functions:secrets:set BOOTSTRAP_AUTOMATION_KEY --project "$FIREBASE_PROJECT_ID_RESOLVED" --non-interactive --data-file -
+          sync_secret BOOTSTRAP_AUTOMATION_KEY "$BOOTSTRAP_AUTOMATION_KEY"
 
       - name: Deploy Firestore rules + functions
         if: steps.precheck.outputs.ready == 'true'
