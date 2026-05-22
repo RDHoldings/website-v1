@@ -245,6 +245,7 @@ jobs:
 
       - name: Bootstrap initial invite email
         if: steps.precheck.outputs.ready == 'true'
+        continue-on-error: true
         env:
           BOOTSTRAP_ADMIN_EMAIL: ${{ vars.VITE_BOOTSTRAP_ADMIN_EMAIL || 'marc77014@gmail.com' }}
           BOOTSTRAP_AUTOMATION_KEY: ${{ secrets.BOOTSTRAP_AUTOMATION_KEY }}
