@@ -239,15 +239,9 @@ jobs:
 
       - name: Deploy website Cloud Functions
         if: steps.precheck.outputs.ready == 'true'
+        run: firebase deploy --project "$FIREBASE_PROJECT_ID_RESOLVED" --only functions:website --non-interactive
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           BOOTSTRAP_ADMIN_EMAIL: ${{ vars.VITE_BOOTSTRAP_ADMIN_EMAIL || 'marc77014@gmail.com' }}
-        run: |
-          # Prefer CI token for deploy when set (avoids Secret Manager get on deploy SA).
-          if [ -n "$FIREBASE_TOKEN" ]; then
-            unset GOOGLE_APPLICATION_CREDENTIALS
-          fi
-          firebase deploy --project "$FIREBASE_PROJECT_ID_RESOLVED" --only functions:website --non-interactive
 
       - name: Bootstrap initial invite email
         if: steps.precheck.outputs.ready == 'true'
