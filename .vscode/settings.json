@@ -1,4 +1,8 @@
 {
+  "markdownlint.config": {
+    "extends": ".markdownlint.json"
+  },
+  "markdownlint.run": "onSave",
   "markdown.preview.breaks": true,
   "markdown.preview.linkify": true,
   "markdown.preview.typographer": true,
