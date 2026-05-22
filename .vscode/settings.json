@@ -1,18 +1,15 @@
 {
-  "markdown.preview.breaks": true,
-  "markdown.preview.linkify": true,
-  "markdown.preview.typographer": true,
-  "markdown.preview.lineHeight": 1.6,
-  "markdown.suggest.paths.enabled": true,
-  "markdown.updateLinksOnPaste.enabled": true,
+  "markdownlint.config": {
+    "extends": ".markdownlint.json"
+  },
+  "markdownlint.focusMode": false,
+  "markdownlint.run": "onSave",
   "[markdown]": {
     "editor.wordWrap": "on",
-    "editor.wordWrapColumn": 120,
     "editor.quickSuggestions": {
       "comments": "off",
       "strings": "off",
       "other": "off"
-    },
-    "editor.rulers": [80, 120]
+    }
   }
 }
