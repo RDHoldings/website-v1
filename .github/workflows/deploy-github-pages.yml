@@ -143,6 +143,7 @@ jobs:
   deploy_firebase_backend:
     # Intentional complexity: functions/rules deploy is isolated so Pages deploy can proceed independently.
     if: github.ref == 'refs/heads/main' && (vars.FIREBASE_PROJECT_ID != '' || vars.VITE_FIREBASE_PROJECT_ID != '')
+    continue-on-error: true
     runs-on: ubuntu-latest
     env:
       FIREBASE_PROJECT_ID_RESOLVED: ${{ vars.FIREBASE_PROJECT_ID != '' && vars.FIREBASE_PROJECT_ID || vars.VITE_FIREBASE_PROJECT_ID }}
