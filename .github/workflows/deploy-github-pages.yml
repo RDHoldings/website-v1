@@ -237,9 +237,9 @@ jobs:
           fi
           sync_secret BOOTSTRAP_AUTOMATION_KEY "$BOOTSTRAP_AUTOMATION_KEY"
 
-      - name: Deploy Firestore rules + functions
+      - name: Deploy website Cloud Functions
         if: steps.precheck.outputs.ready == 'true'
-        run: firebase deploy --project "$FIREBASE_PROJECT_ID_RESOLVED" --only firestore:rules,functions:website --non-interactive
+        run: firebase deploy --project "$FIREBASE_PROJECT_ID_RESOLVED" --only functions:website --non-interactive
         env:
           BOOTSTRAP_ADMIN_EMAIL: ${{ vars.VITE_BOOTSTRAP_ADMIN_EMAIL || 'marc77014@gmail.com' }}
 
