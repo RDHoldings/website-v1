@@ -1,3 +1,13 @@
 {
-  "globs": ["**/*.md", "#node_modules", "#public"]
+  "globs": [
+    "README.md",
+    "PROMPT_MASTER_PLAN.md",
+    "docs/**/*.md",
+    "public/**/README.md"
+  ],
+  "ignores": [
+    "node_modules/**",
+    "public/**/app/**",
+    "dist/**"
+  ]
 }
