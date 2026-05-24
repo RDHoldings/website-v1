@@ -1,5 +1,5 @@
 {
-  "markdownlint.configFile": ".markdownlint.json",
+  "markdownlint.cli2ConfigFile": ".markdownlint-cli2.jsonc",
   "markdownlint.run": "onSave",
   "markdown.preview.breaks": true,
   "markdown.preview.linkify": true,
