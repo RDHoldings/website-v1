@@ -5,7 +5,7 @@ name: Deploy website + Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'cursor/project-health-review-*']
   workflow_dispatch:
 
 permissions:
@@ -44,10 +44,10 @@ jobs:
       APP_INVITE_BASE_URL: ${{ vars.APP_INVITE_BASE_URL || '' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
           cache: npm
@@ -136,6 +136,7 @@ jobs:
           verify_lb_embed_index dist/living-bible-test/app/index.html "test Expo embed" "/living-bible-test/app"
 
       - name: Upload artifact
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
@@ -150,10 +151,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
           cache: npm
@@ -256,6 +257,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
