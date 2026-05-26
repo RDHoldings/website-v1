@@ -1,2 +1,4 @@
 # Dependencies and generated paths (keep lint focused on project docs)
 **/node_modules/
+**/public/
+**/dist/
