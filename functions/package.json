@@ -17,6 +17,9 @@
     "firebase-functions": "^6.5.0",
     "googleapis": "^150.0.1"
   },
+  "overrides": {
+    "uuid": "^11.1.0"
+  },
   "devDependencies": {
     "eslint": "^9.39.4"
   }
