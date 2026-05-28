@@ -1,0 +1,26 @@
+# Lightweight checks on health-cleanup branches (Pages deploy stays main-only).
+name: PR health
+
+on:
+  push:
+    branches:
+      - 'cursor/project-health-cleanup-*'
+  pull_request:
+    branches: [main]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run install:functions && npm run lint:functions && npm run test:functions
+      - run: npx --yes markdownlint-cli2
