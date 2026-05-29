@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'cursor/project-health-cleanup-*']
+  pull_request:
+    branches: [main]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Markdown lint
+        run: npx --yes markdownlint-cli2
+
+      - run: npm run lint
+
+      - run: npm run build
+        env:
+          VITE_BASE_URL: ''
+
+      - name: Cloud Functions unit tests
+        working-directory: functions
+        run: |
+          npm ci
+          npm test
