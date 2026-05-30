@@ -1,10 +1,9 @@
 {
+  "gitignore": true,
+  "ignores": ["**/node_modules/**", "**/public/**", "dist/**"],
   "globs": [
     "README.md",
     "PROMPT_MASTER_PLAN.md",
-    "docs/**/*.md",
-    "#**/node_modules",
-    "#**/public",
-    "#dist"
+    "docs/**/*.md"
   ]
 }
