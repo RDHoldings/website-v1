@@ -1,6 +1,10 @@
 {
   "name": "website-functions",
   "private": true,
+  "overrides": {
+    "glob": "^13.0.6",
+    "rimraf": "^5.0.10"
+  },
   "engines": {
     "node": "20"
   },
