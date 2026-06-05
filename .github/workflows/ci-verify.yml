@@ -1,0 +1,32 @@
+# Build and markdown checks on project-health branches (main Pages deploy unchanged).
+name: CI verify
+
+on:
+  push:
+    branches:
+      - 'cursor/project-health-cleanup-*'
+      - 'cursor/project-health-review-*'
+      - 'cursor/code-quality-and-ci-health-*'
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Markdown lint
+        run: npx --yes markdownlint-cli2@0.22.1
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm run build
