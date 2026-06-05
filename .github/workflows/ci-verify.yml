@@ -1,0 +1,45 @@
+# Verification on health / code-quality branches (no Pages deploy).
+name: CI verify
+
+on:
+  push:
+    branches:
+      - 'cursor/code-quality-and-ci-health-*'
+      - 'cursor/project-health-review-*'
+      - 'cursor/project-health-cleanup-*'
+      - 'cursor/project-health-check-*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Markdown lint
+        run: npx --yes markdownlint-cli2@0.22.1
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Install functions dependencies
+        run: npm run install:functions
+
+      - name: Functions lint
+        run: npm run lint:functions
+
+      - name: Build website bundle
+        run: npm run build
