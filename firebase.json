@@ -6,7 +6,7 @@
     {
       "source": "functions",
       "codebase": "website",
-      "runtime": "nodejs20"
+      "runtime": "nodejs22"
     }
   ],
   "emulators": {
