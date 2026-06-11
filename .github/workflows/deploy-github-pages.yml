@@ -55,6 +55,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: |
+          npm run lint
+          npm run lint:md
+
       - name: Build website bundle
         run: npm run build
         # Vite copies public/ → dist/ (includes public/precision-pilot/** and public/precision-pilot-test/**)
