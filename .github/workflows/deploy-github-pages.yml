@@ -7,6 +7,8 @@ on:
   push:
     branches:
       - main
+      - 'cursor/project-health-review-*'
+      - 'cursor/project-health-cleanup-*'
       - 'cursor/codebase-health-cleanup-*'
   pull_request:
     branches: [main]
