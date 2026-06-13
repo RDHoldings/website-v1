@@ -5,6 +5,14 @@ name: Deploy website + Pages
 
 on:
   push:
+    branches:
+      - main
+      - 'cursor/overall-project-health-*'
+      - 'cursor/project-health-review-*'
+      - 'cursor/project-health-cleanup-*'
+      - 'cursor/codebase-health-cleanup-*'
+      - 'cursor/ide-warnings-and-deprecations-*'
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -14,7 +22,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  # Keep push and pull_request runs separate so branch pushes are not canceled when a PR opens.
+  group: pages-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -44,10 +53,10 @@ jobs:
       APP_INVITE_BASE_URL: ${{ vars.APP_INVITE_BASE_URL || '' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: npm
@@ -136,7 +145,7 @@ jobs:
           verify_lb_embed_index dist/living-bible-test/app/index.html "test Expo embed" "/living-bible-test/app"
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
@@ -150,10 +159,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: npm
@@ -255,6 +264,7 @@ jobs:
           node functions/scripts/bootstrap-invite.mjs --project "$FIREBASE_PROJECT_ID_RESOLVED" --email "$BOOTSTRAP_ADMIN_EMAIL" --region "$VITE_FIREBASE_FUNCTIONS_REGION" --automation-key "$BOOTSTRAP_AUTOMATION_KEY"
 
   deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -263,4 +273,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
