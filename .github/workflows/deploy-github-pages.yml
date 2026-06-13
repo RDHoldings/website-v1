@@ -21,7 +21,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  # Keep push and pull_request runs separate so branch pushes are not canceled when a PR opens.
+  group: pages-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
