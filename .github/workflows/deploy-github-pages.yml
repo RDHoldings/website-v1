@@ -5,7 +5,7 @@ name: Deploy website + Pages
 
 on:
   push:
-    branches: [main, cursor/project-health-cleanup-4eb7]
+    branches: [main, cursor/project-health-cleanup-8238]
   workflow_dispatch:
 
 permissions:
