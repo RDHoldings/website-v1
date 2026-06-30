@@ -8,6 +8,7 @@ on:
       - 'cursor/project-health-review-*'
       - 'cursor/project-health-cleanup-*'
       - 'cursor/project-health-check-*'
+      - 'cursor/codebase-health-check-*'
   pull_request:
     branches: [main]
   workflow_dispatch:

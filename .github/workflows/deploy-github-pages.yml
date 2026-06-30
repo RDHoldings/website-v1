@@ -9,6 +9,7 @@ on:
       - main
       - 'cursor/project-health-review-*'
       - 'cursor/project-health-cleanup-*'
+      - 'cursor/codebase-health-check-*'
   workflow_dispatch:
 
 permissions:
