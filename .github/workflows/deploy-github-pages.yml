@@ -5,7 +5,7 @@ name: Deploy website + Pages
 
 on:
   push:
-    branches: [main, 'cursor/project-health-cleanup-*', 'cursor/code-quality-improvements-*', 'cursor/codebase-issue-resolution-*']
+    branches: [main, 'cursor/project-health-cleanup-*', 'cursor/code-quality-improvements-*', 'cursor/codebase-issue-resolution-*', 'cursor/local-and-ci-cleanup-*']
   pull_request:
     branches: [main]
   workflow_dispatch:
