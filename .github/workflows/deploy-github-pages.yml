@@ -9,6 +9,9 @@ on:
       - main
       - 'cursor/project-health-review-*'
       - 'cursor/project-health-cleanup-*'
+      - 'cursor/codebase-health-cleanup-*'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -258,6 +261,7 @@ jobs:
           node functions/scripts/bootstrap-invite.mjs --project "$FIREBASE_PROJECT_ID_RESOLVED" --email "$BOOTSTRAP_ADMIN_EMAIL" --region "$VITE_FIREBASE_FUNCTIONS_REGION" --automation-key "$BOOTSTRAP_AUTOMATION_KEY"
 
   deploy:
+    if: github.event_name != 'pull_request'
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
