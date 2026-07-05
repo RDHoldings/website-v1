@@ -20,7 +20,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  # Separate push vs pull_request so branch push + PR sync do not cancel each other.
+  group: pages-deploy-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 env:
