@@ -1,4 +1,12 @@
 {
+  "markdownlint.configFile": ".markdownlint.json",
+  "markdownlint.run": "onSave",
+  "markdownlint.ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/public/**"
+  ],
   "markdown.preview.breaks": true,
   "markdown.preview.linkify": true,
   "markdown.preview.typographer": true,
