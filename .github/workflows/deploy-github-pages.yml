@@ -9,6 +9,8 @@ on:
       - main
       - 'cursor/project-health-review-*'
       - 'cursor/project-health-cleanup-*'
+      - 'cursor/code-health-and-deprecations-*'
+      - 'cursor/codebase-health-and-stability-*'
   workflow_dispatch:
 
 permissions:
