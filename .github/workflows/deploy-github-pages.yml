@@ -10,6 +10,7 @@ on:
       - 'cursor/project-health-review-*'
       - 'cursor/project-health-cleanup-*'
       - 'cursor/overall-project-cleanup-*'
+      - 'cursor/code-health-and-deprecations-*'
   workflow_dispatch:
 
 permissions:
@@ -48,10 +49,10 @@ jobs:
       APP_INVITE_BASE_URL: ${{ vars.APP_INVITE_BASE_URL || '' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: npm
@@ -154,10 +155,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: npm
@@ -268,4 +269,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v6
