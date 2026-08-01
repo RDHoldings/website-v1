@@ -1,5 +1,7 @@
 {
   "markdown.preview.breaks": true,
+  "markdownlint.configFile": ".markdownlint.json",
+  "markdownlint.run": "onSave",
   "markdown.preview.linkify": true,
   "markdown.preview.typographer": true,
   "markdown.preview.lineHeight": 1.6,
