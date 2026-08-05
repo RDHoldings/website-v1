@@ -9,6 +9,7 @@ on:
       - main
       - 'cursor/project-health-review-*'
       - 'cursor/project-health-cleanup-*'
+      - 'cursor/project-health-and-cleanup-*'
   workflow_dispatch:
 
 permissions:
