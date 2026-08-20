@@ -1,4 +1,14 @@
 {
+  "markdownlint.configFile": ".markdownlint.json",
+  "markdownlint.run": "onSave",
+  "markdownlint.ignore": [
+    "**/node_modules/**",
+    "**/.dart_tool/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/.next/**",
+    "**/coverage/**"
+  ],
   "markdown.preview.breaks": true,
   "markdown.preview.linkify": true,
   "markdown.preview.typographer": true,

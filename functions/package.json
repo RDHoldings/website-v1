@@ -2,7 +2,7 @@
   "name": "website-functions",
   "private": true,
   "engines": {
-    "node": "20"
+    "node": ">=20"
   },
   "main": "src/index.js",
   "type": "module",
@@ -19,5 +19,8 @@
   },
   "devDependencies": {
     "eslint": "^9.39.4"
+  },
+  "overrides": {
+    "uuid": "^11.0.0"
   }
 }
