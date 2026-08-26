@@ -1,10 +1,20 @@
 {
+  "markdownlint.configFile": ".markdownlint.json",
+  "markdownlint.run": "onSave",
+  "markdownlint.ignore": [
+    "**/node_modules/**",
+    "**/.dart_tool/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/.next/**",
+    "**/coverage/**"
+  ],
   "markdown.preview.breaks": true,
   "markdown.preview.linkify": true,
   "markdown.preview.typographer": true,
   "markdown.preview.lineHeight": 1.6,
   "markdown.suggest.paths.enabled": true,
-  "markdown.updateLinksOnPaste.enabled": true,
+  "markdown.updateLinks.onPaste.enabled": true,
   "[markdown]": {
     "editor.wordWrap": "on",
     "editor.wordWrapColumn": 120,
