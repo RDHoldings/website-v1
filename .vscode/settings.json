@@ -14,7 +14,7 @@
   "markdown.preview.typographer": true,
   "markdown.preview.lineHeight": 1.6,
   "markdown.suggest.paths.enabled": true,
-  "markdown.updateLinks.onPaste.enabled": true,
+  "markdown.updateLinksOnPaste.enabled": true,
   "[markdown]": {
     "editor.wordWrap": "on",
     "editor.wordWrapColumn": 120,
