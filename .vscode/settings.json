@@ -1,8 +1,6 @@
 {
   "markdownlint.configFile": ".markdownlint.json",
   "markdownlint.run": "onSave",
-<<<<<<< HEAD
-=======
   "markdownlint.ignore": [
     "**/node_modules/**",
     "**/.dart_tool/**",
@@ -11,7 +9,6 @@
     "**/.next/**",
     "**/coverage/**"
   ],
->>>>>>> 6e5ccec (chore: restore project health baseline (IDE, deprecations, CI))
   "markdown.preview.breaks": true,
   "markdown.preview.linkify": true,
   "markdown.preview.typographer": true,
