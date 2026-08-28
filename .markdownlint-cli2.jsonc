@@ -3,8 +3,10 @@
     "README.md",
     "PROMPT_MASTER_PLAN.md",
     "docs/**/*.md",
-    "#**/node_modules",
     "#**/public",
     "#dist"
+  ],
+  "ignores": [
+    "**/node_modules/**"
   ]
 }
