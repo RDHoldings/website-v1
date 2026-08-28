@@ -5,6 +5,10 @@ name: Deploy website + Pages
 
 on:
   push:
+    branches:
+      - main
+      - 'cursor/project-health-cleanup-*'
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -255,6 +259,7 @@ jobs:
           node functions/scripts/bootstrap-invite.mjs --project "$FIREBASE_PROJECT_ID_RESOLVED" --email "$BOOTSTRAP_ADMIN_EMAIL" --region "$VITE_FIREBASE_FUNCTIONS_REGION" --automation-key "$BOOTSTRAP_AUTOMATION_KEY"
 
   deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:
