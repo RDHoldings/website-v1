@@ -1,6 +1,7 @@
 {
   "markdownlint.configFile": ".markdownlint.json",
   "markdownlint.run": "onSave",
+  "markdownlint.ignore": ["**/node_modules/**"],
   "markdown.preview.breaks": true,
   "markdown.preview.linkify": true,
   "markdown.preview.typographer": true,
