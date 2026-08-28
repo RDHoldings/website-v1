@@ -1,4 +1,5 @@
 {
+  "ignores": ["**/node_modules/**"],
   "globs": [
     "README.md",
     "PROMPT_MASTER_PLAN.md",
