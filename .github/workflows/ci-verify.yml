@@ -41,3 +41,6 @@ jobs:
 
       - name: Functions lint
         run: npm run lint:functions
+
+      - name: Functions tests
+        run: npm run test:functions
