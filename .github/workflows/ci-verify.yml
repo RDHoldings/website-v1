@@ -9,6 +9,8 @@ on:
       - 'cursor/project-health-cleanup-*'
       - 'cursor/project-health-improvements-*'
       - 'cursor/project-health-check-*'
+      - 'cursor/codebase-health-check-*'
+      - 'cursor/repository-health-check-*'
       - 'cursor/repository-health-check-*'
       - 'cursor/local-and-ci-health-*'
       - 'cursor/bc-*'
