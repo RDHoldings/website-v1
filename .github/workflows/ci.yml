@@ -1,0 +1,46 @@
+# Build and verify only (no Pages deploy) — used by project health review branches.
+name: CI
+
+on:
+  push:
+    branches:
+      - 'cursor/project-health-review-*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build website bundle
+        run: npm run build
+
+      - name: Verify dist layout + embeds
+        run: |
+          set -e
+          ls -la dist
+          for name in precision-pilot precision-pilot-test living-bible living-bible-test privacy terms access-request admin/access; do
+            test -f "dist/$name/index.html"
+          done
+          for name in precision-pilot precision-pilot-test; do
+            for f in index.html flutter_bootstrap.js main.dart.js; do
+              test -f "dist/$name/app/$f"
+            done
+          done
