@@ -6,6 +6,8 @@ name: Deploy website + Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -142,7 +144,7 @@ jobs:
 
   deploy_firebase_backend:
     # Intentional complexity: functions/rules deploy is isolated so Pages deploy can proceed independently.
-    if: github.ref == 'refs/heads/main' && (vars.FIREBASE_PROJECT_ID != '' || vars.VITE_FIREBASE_PROJECT_ID != '')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (vars.FIREBASE_PROJECT_ID != '' || vars.VITE_FIREBASE_PROJECT_ID != '')
     runs-on: ubuntu-latest
     env:
       FIREBASE_PROJECT_ID_RESOLVED: ${{ vars.FIREBASE_PROJECT_ID != '' && vars.FIREBASE_PROJECT_ID || vars.VITE_FIREBASE_PROJECT_ID }}
@@ -255,6 +257,7 @@ jobs:
           node functions/scripts/bootstrap-invite.mjs --project "$FIREBASE_PROJECT_ID_RESOLVED" --email "$BOOTSTRAP_ADMIN_EMAIL" --region "$VITE_FIREBASE_FUNCTIONS_REGION" --automation-key "$BOOTSTRAP_AUTOMATION_KEY"
 
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:
