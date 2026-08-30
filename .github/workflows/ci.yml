@@ -1,0 +1,41 @@
+# Lint and build verification on PRs and project-health branches (no Pages deploy).
+name: CI
+
+on:
+  push:
+    branches:
+      - 'cursor/project-health-review-*'
+      - 'cursor/project-health-cleanup-*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Cloud Functions lint and test
+        working-directory: functions
+        run: |
+          npm ci
+          npm run lint
+          npm test
