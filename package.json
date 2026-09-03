@@ -11,6 +11,7 @@
     "build": "vite build",
     "postbuild": "node scripts/copy-spa-route-shells.mjs && node scripts/rewrite-flutter-embed-base-href.mjs && node scripts/inject-google-maps-key.mjs && node scripts/inject-flutter-web-env.mjs && node scripts/verify-flutter-embed-assets.mjs && node scripts/verify-living-bible-web-embed.mjs",
     "lint": "eslint .",
+    "lint:md": "markdownlint-cli2",
     "lint:functions": "npm --prefix functions run lint",
     "test:functions": "npm --prefix functions run test",
     "install:functions": "npm --prefix functions install",

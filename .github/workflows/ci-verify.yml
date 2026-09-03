@@ -7,7 +7,13 @@ on:
       - 'cursor/code-quality-and-ci-health-*'
       - 'cursor/project-health-review-*'
       - 'cursor/project-health-cleanup-*'
+      - 'cursor/project-health-improvements-*'
       - 'cursor/project-health-check-*'
+      - 'cursor/codebase-health-check-*'
+      - 'cursor/repository-health-check-*'
+      - 'cursor/repository-health-check-*'
+      - 'cursor/local-and-ci-health-*'
+      - 'cursor/bc-*'
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -27,7 +33,7 @@ jobs:
           cache: npm
 
       - name: Markdown lint
-        run: npx --yes markdownlint-cli2
+        run: npx --yes markdownlint-cli2@0.22.1
 
       - name: Install dependencies
         run: npm ci
@@ -37,3 +43,6 @@ jobs:
 
       - name: Functions lint
         run: npm run lint:functions
+
+      - name: Functions tests
+        run: npm run test:functions
