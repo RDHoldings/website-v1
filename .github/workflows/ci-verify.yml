@@ -10,6 +10,7 @@ on:
       - 'cursor/project-health-improvements-*'
       - 'cursor/project-health-check-*'
       - 'cursor/codebase-health-check-*'
+      - 'cursor/codebase-health-and-stability-*'
       - 'cursor/repository-health-check-*'
       - 'cursor/repository-health-check-*'
       - 'cursor/local-and-ci-health-*'
