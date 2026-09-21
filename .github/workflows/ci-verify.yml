@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - 'cursor/code-quality-and-ci-health-*'
+      - 'cursor/code-quality-and-health-*'
       - 'cursor/project-health-review-*'
       - 'cursor/project-health-cleanup-*'
       - 'cursor/project-health-improvements-*'
