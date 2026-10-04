@@ -46,3 +46,104 @@ jobs:
 
       - name: Functions tests
         run: npm run test:functions
+
+  # Private repos (bible-app, precision-freight) skip hosted jobs when RUN_HOSTED_ACTIONS is unset.
+  # Optional secret PRIVATE_REPOS_READ_TOKEN (Contents: Read on both) or FLUTTER_APP_CHECKOUT_TOKEN
+  # (precision-freight only) enables hosted verification from this public repo.
+  verify-bible-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve private repo checkout token
+        id: creds
+        env:
+          PRIMARY: ${{ secrets.PRIVATE_REPOS_READ_TOKEN }}
+          FALLBACK: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN }}
+        run: |
+          set -e
+          if [ -n "$PRIMARY" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          elif [ -n "$FALLBACK" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::PRIVATE_REPOS_READ_TOKEN unset — FLUTTER_APP_CHECKOUT_TOKEN may not grant bible-app access."
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping bible-app hosted verify (set PRIVATE_REPOS_READ_TOKEN with Contents: Read on RDHoldings/bible-app)."
+          fi
+
+      - name: Checkout bible-app
+        if: steps.creds.outputs.ok == 'true'
+        env:
+          TOKEN: ${{ secrets.PRIVATE_REPOS_READ_TOKEN || secrets.FLUTTER_APP_CHECKOUT_TOKEN }}
+        run: |
+          set -e
+          git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/RDHoldings/bible-app.git" bible-app
+
+      - uses: actions/setup-node@v6
+        if: steps.creds.outputs.ok == 'true'
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: bible-app/package-lock.json
+
+      - name: bible-app — npm ci + checks
+        if: steps.creds.outputs.ok == 'true'
+        working-directory: bible-app
+        run: |
+          set -e
+          npm ci
+          npm run lint:md
+          npm run typecheck
+          npm run test
+          npm run validate:content
+
+  verify-precision-freight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve private repo checkout token
+        id: creds
+        env:
+          PRIMARY: ${{ secrets.PRIVATE_REPOS_READ_TOKEN }}
+          FALLBACK: ${{ secrets.FLUTTER_APP_CHECKOUT_TOKEN }}
+        run: |
+          set -e
+          if [ -n "$PRIMARY" ] || [ -n "$FALLBACK" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping precision-freight hosted verify (set PRIVATE_REPOS_READ_TOKEN or FLUTTER_APP_CHECKOUT_TOKEN)."
+          fi
+
+      - name: Checkout precision-freight
+        if: steps.creds.outputs.ok == 'true'
+        env:
+          TOKEN: ${{ secrets.PRIVATE_REPOS_READ_TOKEN || secrets.FLUTTER_APP_CHECKOUT_TOKEN }}
+        run: |
+          set -e
+          git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/RDHoldings/precision-freight.git" precision-freight
+
+      - uses: actions/setup-node@v6
+        if: steps.creds.outputs.ok == 'true'
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: precision-freight/functions/package-lock.json
+
+      - uses: subosito/flutter-action@v2
+        if: steps.creds.outputs.ok == 'true'
+        with:
+          channel: stable
+          cache: true
+
+      - name: precision-freight — functions + Flutter checks
+        if: steps.creds.outputs.ok == 'true'
+        working-directory: precision-freight
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: |
+          set -e
+          (cd functions && npm ci && npm run build && npm test)
+          flutter pub get
+          bash scripts/verify-flutter-embed-index-html.sh web/index.html
+          flutter analyze
+          flutter test
+          flutter test test/integration
