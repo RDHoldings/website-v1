@@ -14,6 +14,7 @@ on:
       - 'cursor/repository-health-check-*'
       - 'cursor/local-and-ci-health-*'
       - 'cursor/bc-*'
+      - 'cursor/error-and-deprecation-cleanup-*'
   pull_request:
     branches: [main]
   workflow_dispatch:
