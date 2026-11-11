@@ -7,6 +7,7 @@ on:
       - 'cursor/code-quality-and-ci-health-*'
       - 'cursor/project-health-review-*'
       - 'cursor/project-health-cleanup-*'
+      - 'cursor/project-health-and-cleanup-*'
       - 'cursor/project-health-improvements-*'
       - 'cursor/project-health-check-*'
       - 'cursor/codebase-health-check-*'
